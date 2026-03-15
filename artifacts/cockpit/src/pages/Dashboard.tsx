@@ -6,7 +6,7 @@ import { Card, Badge, Button, Input, Progress } from "@/components/UI";
 import { useTasks, useToggleTask } from "@/hooks/use-tasks";
 import { useProjects } from "@/hooks/use-projects";
 import { Sparkles, ArrowUpRight, ArrowDownRight, Search, Bell, Plus, Check } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const revenueData = [
