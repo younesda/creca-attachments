@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit — La plateforme des entrepreneurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0B0B0F;--card:#121218;--sidebar:#16161F;--border:#1E1E2A;
+    --primary:#7C3AED;--accent:#9333EA;--primary-glow:rgba(124,58,237,0.15);
+    --text:#F3F4F6;--text-muted:#9CA3AF;--text-dim:#6B7280;
+    --green:#22C55E;--red:#EF4444;--blue:#3B82F6;--orange:#F59E0B;
+    --green-bg:rgba(34,197,94,0.1);--red-bg:rgba(239,68,68,0.1);
+    --blue-bg:rgba(59,130,246,0.1);--orange-bg:rgba(245,158,11,0.1);
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .syne{font-family:'Syne',sans-serif}
+
+  /* === VIEWS === */
+  .view{display:none}
+  .view.active{display:block}
+
+  /* === LANDING === */
+  #landing{background:var(--bg)}
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(11,11,15,0.85);backdrop-filter:blur(12px)}
+  .logo{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:.5rem}
+  .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block}
+  nav-links{display:flex;gap:2rem;align-items:center}
+  nav a{color:var(--text-muted);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+  nav a:hover{color:var(--text)}
+  .btn{padding:.625rem 1.25rem;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:'Manrope',sans-serif}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:#6D28D9;transform:translateY(-1px)}
+  .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:none;padding:.5rem .75rem;font-size:.8rem}
+  
+  /* Hero */
+  .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;position:relative;overflow:hidden}
+  .hero-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.25;pointer-events:none}
+  .hero-orb-1{width:600px;height:600px;background:var(--primary);top:-100px;left:50%;transform:translateX(-50%)}
+  .hero-orb-2{width:300px;height:300px;background:#3B82F6;bottom:10%;right:10%}
+  .hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.375rem .875rem;border-radius:50px;border:1px solid rgba(124,58,237,.4);background:rgba(124,58,237,.08);font-size:.75rem;font-weight:600;color:#A78BFA;margin-bottom:1.5rem;letter-spacing:.05em;text-transform:uppercase}
+  .hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.5rem,6vw,5rem);font-weight:800;line-height:1.05;margin-bottom:1.5rem;letter-spacing:-.02em}
+  .hero h1 span{background:linear-gradient(135deg,#7C3AED,#9333EA,#C084FC);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero-sub{font-size:1.125rem;color:var(--text-muted);max-width:560px;margin:0 auto 2.5rem;line-height:1.7}
+  .hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+  .btn-lg{padding:.875rem 2rem;font-size:1rem;border-radius:10px}
+  .hero-stats{display:flex;gap:3rem;justify-content:center;margin-top:4rem;flex-wrap:wrap}
+  .hero-stat{text-align:center}
+  .hero-stat-n{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--text)}
+  .hero-stat-l{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.25rem}
+  
+  /* Dashboard Preview */
+  .preview-section{padding:5rem 2rem;max-width:1200px;margin:0 auto}
+  .preview-label{text-align:center;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:1rem}
+  .preview-frame{border-radius:16px;border:1px solid var(--border);overflow:hidden;background:var(--card);position:relative}
+  .preview-bar{background:#1A1A26;padding:.625rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+  .preview-dot{width:10px;height:10px;border-radius:50%}
+  .preview-url{flex:1;background:#111117;border-radius:6px;padding:.25rem .75rem;font-size:.75rem;color:var(--text-dim);text-align:center;font-family:'JetBrains Mono',monospace}
+
+  /* Features */
+  .features-section{padding:6rem 2rem;max-width:1200px;margin:0 auto}
+  .section-header{text-align:center;margin-bottom:4rem}
+  .section-tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);font-weight:600;margin-bottom:.75rem}
+  .section-title{font-family:'Syne',sans-serif;font-size:clamp(1.75rem,4vw,2.75rem);font-weight:800;letter-spacing:-.02em;margin-bottom:1rem}
+  .section-sub{color:var(--text-muted);font-size:1rem;max-width:480px;margin:0 auto;line-height:1.7}
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+  .feature-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.75rem;transition:all .3s;cursor:default}
+  .feature-card:hover{border-color:rgba(124,58,237,.4);background:#14141C;transform:translateY(-2px)}
+  .feature-icon{width:44px;height:44px;border-radius:10px;background:var(--primary-glow);border:1px solid rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;font-size:1.25rem}
+  .feature-title{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:.5rem}
+  .feature-desc{font-size:.875rem;color:var(--text-muted);line-height:1.65}
+
+  /* Pricing */
+  .pricing-section{padding:6rem 2rem;max-width:1100px;margin:0 auto}
+  .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+  @media(max-width:768px){.pricing-grid{grid-template-columns:1fr}}
+  .pricing-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:2rem;position:relative}
+  .pricing-card.featured{border-color:var(--primary);background:#130E20}
+  .pricing-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:.7rem;font-weight:700;padding:.25rem .875rem;border-radius:50px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+  .pricing-plan{font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:.5rem}
+  .pricing-price{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;margin-bottom:.25rem}
+  .pricing-price sup{font-size:1.2rem;vertical-align:top;margin-top:.5rem}
+  .pricing-price span{font-size:1rem;color:var(--text-muted);font-family:'Manrope',sans-serif}
+  .pricing-desc{font-size:.875rem;color:var(--text-muted);margin-bottom:1.5rem}
+  .pricing-divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+  .pricing-features{list-style:none;display:flex;flex-direction:column;gap:.625rem;margin-bottom:2rem}
+  .pricing-features li{font-size:.875rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem}
+  .pricing-features li::before{content:'';width:16px;height:16px;border-radius:50%;background:var(--green-bg);border:1px solid rgba(34,197,94,.3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%2322C55E' d='M3 8l3.5 3.5L13 5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center}
+
+  /* CTA */
+  .cta-section{padding:6rem 2rem;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--border)}
+  .cta-orb{position:absolute;width:500px;height:500px;border-radius:50%;background:var(--primary);filter:blur(120px);opacity:.1;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+  .cta-section h2{font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:800;letter-spacing:-.02em;margin-bottom:1rem}
+  .cta-section p{color:var(--text-muted);margin-bottom:2.5rem;font-size:1.05rem}
+
+  /* Footer */
+  footer{border-top:1px solid var(--border);padding:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap}
+  footer .logo{font-size:1.1rem}
+  footer p{font-size:.8rem;color:var(--text-dim)}
+
+  /* === APP SHELL === */
+  #app{display:none}
+  #app.active{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:240px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:1.25rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .sidebar-nav{padding:1rem .625rem;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem}
+  .nav-section{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);padding:.5rem .625rem .25rem;margin-top:.5rem}
+  .nav-item{display:flex;align-items:center;gap:.75rem;padding:.625rem .75rem;border-radius:8px;cursor:pointer;font-size:.875rem;color:var(--text-muted);transition:all .15s;text-decoration:none}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:var(--text)}
+  .nav-item.active{background:var(--primary-glow);color:#C4B5FD;border-left:2px solid var(--primary)}
+  .nav-item .nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+  .sidebar-user{padding:1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+  .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#9333EA);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+  .user-info{flex:1;min-width:0}
+  .user-name{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user-plan{font-size:.7rem;color:var(--text-dim)}
+  .main-content{flex:1;overflow-y:auto;background:var(--bg)}
+  .app-header{padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50}
+  .app-header h1{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700}
+  .page-content{padding:1.75rem;max-width:1400px}
+
+  /* Metric cards */
+  .metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.75rem}
+  .metric-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:border-color .2s}
+  .metric-card:hover{border-color:rgba(124,58,237,.3)}
+  .metric-label{font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.625rem;display:flex;align-items:center;gap:.5rem}
+  .metric-value{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:600;line-height:1}
+  .metric-change{font-size:.75rem;margin-top:.5rem;display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:50px}
+  .metric-change.up{color:var(--green);background:var(--green-bg)}
+  .metric-change.down{color:var(--red);background:var(--red-bg)}
+
+  /* Charts row */
+  .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.75rem}
+  @media(max-width:900px){.charts-row{grid-template-columns:1fr}}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem}
+  .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+  .chart-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700}
+  .chart-sub{font-size:.75rem;color:var(--text-dim)}
+  .chart-wrap{position:relative;height:200px}
+
+  /* Tables */
+  .data-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+  .data-card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .data-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700}
+  .data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+  .data-table th{padding:.75rem 1.25rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);border-bottom:1px solid var(--border);font-weight:600}
+  .data-table td{padding:.875rem 1.25rem;border-bottom:1px solid rgba(30,30,42,.6);color:var(--text-muted);vertical-align:middle}
+  .data-table tr:last-child td{border-bottom:none}
+  .data-table tr:hover td{background:rgba(255,255,255,.025)}
+  .td-primary{color:var(--text)!important;font-weight:500}
+  .badge{padding:.2rem .6rem;border-radius:50px;font-size:.7rem;font-weight:600;white-space:nowrap}
+  .badge-green{background:var(--green-bg);color:var(--green)}
+  .badge-red{background:var(--red-bg);color:var(--red)}
+  .badge-blue{background:var(--blue-bg);color:var(--blue)}
+  .badge-orange{background:var(--orange-bg);color:var(--orange)}
+  .badge-purple{background:var(--primary-glow);color:#C4B5FD}
+
+  /* Progress bar */
+  .progress{background:var(--border);border-radius:50px;height:6px;overflow:hidden;min-width:80px}
+  .progress-fill{height:100%;border-radius:50px}
+
+  /* Avatar */
+  .avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+
+  /* Tasks */
+  .task-item{display:flex;align-items:flex-start;gap:.875rem;padding:1rem 1.25rem;border-bottom:1px solid rgba(30,30,42,.6);transition:background .15s;cursor:pointer}
+  .task-item:last-child{border-bottom:none}
+  .task-item:hover{background:rgba(255,255,255,.025)}
+  .task-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;margin-top:2px;transition:all .2s;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .task-check.done{background:var(--primary);border-color:var(--primary)}
+  .task-info{flex:1}
+  .task-name{font-size:.875rem;margin-bottom:.25rem}
+  .task-name.done{text-decoration:line-through;color:var(--text-dim)}
+  .task-meta{font-size:.75rem;color:var(--text-dim);display:flex;gap:.75rem}
+
+  /* AI Panel */
+  .ai-panel{background:#0D0B18;border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:1.25rem;margin-bottom:1.75rem}
+  .ai-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+  .ai-icon{width:32px;height:32px;border-radius:8px;background:var(--primary-glow);border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+  .ai-title{font-size:.875rem;font-weight:600;color:#C4B5FD}
+  .ai-content{font-size:.825rem;color:var(--text-muted);line-height:1.7}
+  .ai-content strong{color:var(--text)}
+  .ai-tags{display:flex;gap:.5rem;margin-top:.875rem;flex-wrap:wrap}
+  .ai-tag{padding:.25rem .75rem;border-radius:50px;font-size:.7rem;border:1px solid rgba(124,58,237,.25);color:#A78BFA;cursor:pointer;transition:all .2s}
+  .ai-tag:hover{background:var(--primary-glow)}
+
+  /* Stat pill */
+  .stat-pill{display:inline-flex;align-items:center;gap:.375rem;font-size:.75rem;color:var(--text-dim)}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+  /* Page transitions */
+  .page-section{animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Invoice styles */
+  .inv-row{display:grid;grid-template-columns:1fr 80px 80px 100px;gap:1rem;padding:.75rem 1.25rem;border-bottom:1px solid rgba(30,30,42,.6);font-size:.8rem;align-items:center}
+  .inv-header{background:#0D0D15;color:var(--text-dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+  /* Finance */
+  .fin-row{display:flex;align-items:center;gap:1rem;padding:.875rem 1.25rem;border-bottom:1px solid rgba(30,30,42,.6)}
+  .fin-row:last-child{border-bottom:none}
+  .fin-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+  .fin-info{flex:1}
+  .fin-name{font-size:.85rem;font-weight:500}
+  .fin-date{font-size:.75rem;color:var(--text-dim)}
+  .fin-amount{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:600}
+
+  /* Clients page */
+  .clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+  .client-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all .2s;cursor:pointer}
+  .client-card:hover{border-color:rgba(124,58,237,.4);transform:translateY(-2px)}
+  .client-top{display:flex;align-items:center;gap:.875rem;margin-bottom:1rem}
+  .client-details{display:flex;flex-direction:column;gap:.375rem}
+  .client-detail{font-size:.8rem;color:var(--text-dim);display:flex;align-items:center;gap:.5rem}
+  .client-footer{border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem;display:flex;justify-content:space-between;align-items:center}
+  .client-revenue{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:600;color:var(--green)}
+
+  /* Top bar actions */
+  .header-actions{display:flex;align-items:center;gap:.75rem}
+  .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s}
+  .icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .notif-badge{position:relative}
+  .notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--primary);border:2px solid var(--bg)}
+  .search-bar{display:flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.4rem .875rem;font-size:.8rem;color:var(--text-dim);min-width:200px}
+  .search-bar input{background:transparent;border:none;outline:none;color:var(--text);font-size:.8rem;font-family:'Manrope',sans-serif;width:100%}
+</style>
+</head>
+<body>
+
+<!-- ===== LANDING PAGE ===== -->
+<div id="landing" class="view active">
+  <nav>
+    <div class="logo"><span class="logo-dot"></span>Cockpit</div>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <a href="#features" onclick="return false" style="color:var(--text-muted);text-decoration:none;font-size:.875rem">Fonctionnalités</a>
+      <a href="#pricing" onclick="return false" style="color:var(--text-muted);text-decoration:none;font-size:.875rem">Tarifs</a>
+      <button class="btn btn-outline" onclick="openApp()">Se connecter</button>
+      <button class="btn btn-primary" onclick="openApp()">Démarrer gratuitement</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div style="position:relative;z-index:1">
+      <div class="hero-badge">✦ Le cockpit des entrepreneurs</div>
+      <h1 class="syne">Pilotez toute votre<br>entreprise <span>depuis un seul endroit</span></h1>
+      <p class="hero-sub">Finances, clients, projets, tâches, documents et analytics. Tout ce dont vous avez besoin pour faire tourner votre business, réuni en une seule plateforme.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" onclick="openApp()">Commencer — c'est gratuit</button>
+        <button class="btn btn-outline btn-lg" onclick="openApp()">▶ Voir la démo</button>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-n syne">2 400+</div><div class="hero-stat-l">Entrepreneurs</div></div>
+        <div class="hero-stat"><div class="hero-stat-n syne">98%</div><div class="hero-stat-l">Satisfaction</div></div>
+        <div class="hero-stat"><div class="hero-stat-n syne">12h</div><div class="hero-stat-l">Gagnées / semaine</div></div>
+        <div class="hero-stat"><div class="hero-stat-n syne">4.9★</div><div class="hero-stat-l">Note moyenne</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="preview-section">
+    <div class="preview-label">Aperçu du dashboard</div>
+    <div class="preview-frame" style="cursor:pointer" onclick="openApp()">
+      <div class="preview-bar">
+        <div class="preview-dot" style="background:#FF5F57"></div>
+        <div class="preview-dot" style="background:#FFBD2E"></div>
+        <div class="preview-dot" style="background:#28CA41"></div>
+        <div class="preview-url">app.cockpit.io/dashboard</div>
+      </div>
+      <div style="display:flex;height:340px">
+        <div style="width:180px;background:var(--sidebar);padding:1rem .625rem;border-right:1px solid var(--border);flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .625rem;margin-bottom:1rem">
+            <span style="font-family:Syne,sans-serif;font-weight:800;font-size:1rem">Cockpit</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.2rem">
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;border-radius:6px;background:var(--primary-glow);color:#C4B5FD;font-size:.75rem;border-left:2px solid var(--primary)">📊 Dashboard</div>
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;font-size:.75rem;color:var(--text-dim)">👥 Clients</div>
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;font-size:.75rem;color:var(--text-dim)">📁 Projets</div>
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;font-size:.75rem;color:var(--text-dim)">✅ Tâches</div>
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;font-size:.75rem;color:var(--text-dim)">💰 Finances</div>
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .625rem;font-size:.75rem;color:var(--text-dim)">🧾 Factures</div>
+          </div>
+        </div>
+        <div style="flex:1;padding:1rem;overflow:hidden">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.625rem;margin-bottom:1rem">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+              <div style="font-size:.65rem;color:var(--text-dim);margin-bottom:.375rem">CHIFFRE D'AFFAIRES</div>
+              <div style="font-family:JetBrains Mono,monospace;font-size:1.1rem;font-weight:600">84 500 €</div>
+              <div style="font-size:.65rem;color:var(--green);margin-top:.25rem">▲ +12.4%</div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+              <div style="font-size:.65rem;color:var(--text-dim);margin-bottom:.375rem">DÉPENSES</div>
+              <div style="font-family:JetBrains Mono,monospace;font-size:1.1rem;font-weight:600">23 100 €</div>
+              <div style="font-size:.65rem;color:var(--red);margin-top:.25rem">▼ +3.2%</div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+              <div style="font-size:.65rem;color:var(--text-dim);margin-bottom:.375rem">PROFIT NET</div>
+              <div style="font-family:JetBrains Mono,monospace;font-size:1.1rem;font-weight:600;color:var(--green)">61 400 €</div>
+              <div style="font-size:.65rem;color:var(--green);margin-top:.25rem">▲ +18.7%</div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+              <div style="font-size:.65rem;color:var(--text-dim);margin-bottom:.375rem">CLIENTS ACTIFS</div>
+              <div style="font-family:JetBrains Mono,monospace;font-size:1.1rem;font-weight:600">24</div>
+              <div style="font-size:.65rem;color:var(--blue);margin-top:.25rem">+3 ce mois</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:.625rem">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem;height:160px;display:flex;flex-direction:column">
+              <div style="font-size:.7rem;font-weight:600;margin-bottom:.5rem">Évolution des revenus</div>
+              <div style="flex:1;display:flex;align-items:flex-end;gap:4px">
+                <div style="flex:1;background:rgba(124,58,237,.3);border-radius:3px 3px 0 0;height:55%"></div>
+                <div style="flex:1;background:rgba(124,58,237,.3);border-radius:3px 3px 0 0;height:70%"></div>
+                <div style="flex:1;background:rgba(124,58,237,.3);border-radius:3px 3px 0 0;height:60%"></div>
+                <div style="flex:1;background:rgba(124,58,237,.3);border-radius:3px 3px 0 0;height:80%"></div>
+                <div style="flex:1;background:rgba(124,58,237,.3);border-radius:3px 3px 0 0;height:68%"></div>
+                <div style="flex:1;background:rgba(124,58,237,.5);border-radius:3px 3px 0 0;height:85%"></div>
+                <div style="flex:1;background:var(--primary);border-radius:3px 3px 0 0;height:100%"></div>
+              </div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.75rem">
+              <div style="font-size:.7rem;font-weight:600;margin-bottom:.75rem">Projets</div>
+              <div style="display:flex;flex-direction:column;gap:.5rem">
+                <div style="font-size:.7rem;display:flex;justify-content:space-between"><span style="color:var(--text-dim)">En cours</span><span style="color:var(--blue)">8</span></div>
+                <div style="font-size:.7rem;display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Terminés</span><span style="color:var(--green)">14</span></div>
+                <div style="font-size:.7rem;display:flex;justify-content:space-between"><span style="color:var(--text-dim)">En pause</span><span style="color:var(--orange)">2</span></div>
+                <div style="font-size:.7rem;display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Urgents</span><span style="color:var(--red)">3</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:.875rem 1.25rem;border-top:1px solid var(--border);text-align:center;font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:.5rem">
+        <span style="color:var(--primary)">▶</span> Cliquez pour explorer l'application complète
+      </div>
+    </div>
+  </div>
+
+  <section class="features-section" id="features">
+    <div class="section-header">
+      <div class="section-tag">Modules</div>
+      <div class="section-title syne">Tout ce qu'il vous faut,<br>rien de superflu</div>
+      <div class="section-sub">Chaque module a été conçu pour les besoins réels des entrepreneurs indépendants et petites équipes.</div>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <div class="feature-title syne">Finances & Comptabilité</div>
+        <div class="feature-desc">Suivez revenus et dépenses en temps réel. Visualisez votre trésorerie et anticipez vos prévisions grâce à l'IA.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title syne">CRM Clients</div>
+        <div class="feature-desc">Gérez vos contacts, l'historique de chaque relation et l'ensemble des échanges et transactions par client.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <div class="feature-title syne">Gestion de Projets</div>
+        <div class="feature-desc">Planifiez, budgétisez et suivez vos projets du premier devis à la livraison finale avec un suivi clair.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <div class="feature-title syne">Tâches & Agenda</div>
+        <div class="feature-desc">Kanban intuitif, priorités et rappels. Ne laissez plus rien tomber entre les mailles du filet.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧾</div>
+        <div class="feature-title syne">Facturation</div>
+        <div class="feature-desc">Créez et envoyez des devis et factures professionnels en quelques clics. Export PDF et suivi des paiements inclus.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title syne">Intelligence Artificielle</div>
+        <div class="feature-desc">Analyses financières, recommandations business, résumés de réunions et prévisions de revenus intelligentes.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-section" id="pricing">
+    <div class="section-header">
+      <div class="section-tag">Tarifs</div>
+      <div class="section-title syne">Commencez gratuitement,<br>scalez quand vous êtes prêt</div>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-plan">Free</div>
+        <div class="pricing-price syne"><sup>€</sup>0<span> / mois</span></div>
+        <div class="pricing-desc">Pour tester et démarrer.</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>2 clients actifs</li>
+          <li>3 projets simultanés</li>
+          <li>10 factures / mois</li>
+          <li>5 Go de stockage</li>
+          <li>Dashboard de base</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%" onclick="openApp()">Commencer gratuitement</button>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">⭐ Le plus populaire</div>
+        <div class="pricing-plan">Pro</div>
+        <div class="pricing-price syne"><sup>€</sup>29<span> / mois</span></div>
+        <div class="pricing-desc">Pour les entrepreneurs actifs.</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>Clients illimités</li>
+          <li>Projets illimités</li>
+          <li>Factures illimitées</li>
+          <li>50 Go de stockage</li>
+          <li>Analytics avancés</li>
+          <li>IA — analyses & prévisions</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%" onclick="openApp()">Choisir Pro</button>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-plan">Business</div>
+        <div class="pricing-price syne"><sup>€</sup>79<span> / mois</span></div>
+        <div class="pricing-desc">Pour les équipes en croissance.</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>Tout Pro inclus</li>
+          <li>Jusqu'à 10 membres d'équipe</li>
+          <li>API & intégrations</li>
+          <li>200 Go de stockage</li>
+          <li>Support prioritaire</li>
+          <li>Compte dédié</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%" onclick="openApp()">Choisir Business</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-orb"></div>
+    <div style="position:relative;z-index:1">
+      <h2 class="syne">Prêt à prendre le contrôle<br>de votre business ?</h2>
+      <p>Rejoignez 2 400+ entrepreneurs qui pilotent leur activité avec Cockpit.</p>
+      <button class="btn btn-primary btn-lg" onclick="openApp()">Démarrer maintenant — gratuit</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo"><span class="logo-dot"></span>Cockpit</div>
+    <p>© 2025 Cockpit. Tous droits réservés.</p>
+  </footer>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app" class="view">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" style="font-size:1.1rem"><span class="logo-dot"></span>Cockpit</div>
+      <button class="btn btn-ghost" style="padding:.25rem .5rem;font-size:.75rem" onclick="backToLanding()">← Accueil</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</a>
+      <a class="nav-item" data-page="clients" onclick="showPage('clients',this)"><span class="nav-icon">👥</span>Clients</a>
+      <a class="nav-item" data-page="projects" onclick="showPage('projects',this)"><span class="nav-icon">📁</span>Projets</a>
+      <a class="nav-item" data-page="tasks" onclick="showPage('tasks',this)"><span class="nav-icon">✅</span>Tâches</a>
+      <div class="nav-section">Finance</div>
+      <a class="nav-item" data-page="finances" onclick="showPage('finances',this)"><span class="nav-icon">💰</span>Finances</a>
+      <a class="nav-item" data-page="invoices" onclick="showPage('invoices',this)"><span class="nav-icon">🧾</span>Factures</a>
+      <div class="nav-section">Analyse</div>
+      <a class="nav-item" data-page="analytics" onclick="showPage('analytics',this)"><span class="nav-icon">📈</span>Analytics</a>
+      <div class="nav-section">Compte</div>
+      <a class="nav-item"><span class="nav-icon">📄</span>Documents</a>
+      <a class="nav-item"><span class="nav-icon">⚙️</span>Paramètres</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">TM</div>
+      <div class="user-info">
+        <div class="user-name">Thomas Martin</div>
+        <div class="user-plan">✦ Plan Pro</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page-section">
+      <div class="app-header">
+        <div>
+          <h1>Dashboard</h1>
+          <div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">Bonjour Thomas 👋 — Voici votre résumé du jour</div>
+        </div>
+        <div class="header-actions">
+          <div class="search-bar"><span>🔍</span><input type="text" placeholder="Rechercher..."></div>
+          <button class="icon-btn notif-badge"><span>🔔</span><div class="notif-dot"></div></button>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Nouveau</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="ai-panel">
+          <div class="ai-header">
+            <div class="ai-icon">✦</div>
+            <div><div class="ai-title">Analyse IA · Ce mois-ci</div></div>
+          </div>
+          <div class="ai-content">
+            Vos revenus sont en <strong>hausse de 12.4%</strong> par rapport au mois dernier. Le projet <strong>Refonte Digitale – Arcane</strong> représente 38% de votre CA. 3 factures sont en attente de paiement pour un total de <strong>14 800 €</strong>. Je recommande de relancer Novae Studio et Pixel Factory avant le 20.
+          </div>
+          <div class="ai-tags">
+            <div class="ai-tag" onclick="showPage('finances',document.querySelector('[data-page=finances]'))">📊 Voir les finances</div>
+            <div class="ai-tag" onclick="showPage('invoices',document.querySelector('[data-page=invoices]'))">🧾 Factures en attente</div>
+            <div class="ai-tag">📈 Prévision Q4</div>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">💶 Chiffre d'affaires</div>
+            <div class="metric-value">84 500 €</div>
+            <span class="metric-change up">▲ +12.4%</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">📉 Dépenses</div>
+            <div class="metric-value">23 100 €</div>
+            <span class="metric-change down">▲ +3.2%</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">✨ Profit net</div>
+            <div class="metric-value" style="color:var(--green)">61 400 €</div>
+            <span class="metric-change up">▲ +18.7%</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">👥 Clients actifs</div>
+            <div class="metric-value">24</div>
+            <span class="metric-change up">+3 ce mois</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">📁 Projets en cours</div>
+            <div class="metric-value">8</div>
+            <span class="metric-change" style="color:var(--orange);background:var(--orange-bg)">3 urgents</span>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Évolution des revenus</div><div class="chart-sub">Janvier – Juillet 2025</div></div>
+              <select style="background:var(--border);border:1px solid var(--border);border-radius:6px;padding:.25rem .5rem;font-size:.75rem;color:var(--text-muted);cursor:pointer">
+                <option>Cette année</option><option>Mois dernier</option>
+              </select>
+            </div>
+            <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Dépenses</div><div class="chart-sub">Par catégorie</div></div>
+            </div>
+            <div class="chart-wrap"><canvas id="expenseChart"></canvas></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="data-card">
+            <div class="data-card-header">
+              <div class="data-card-title">Projets récents</div>
+              <button class="btn btn-ghost" onclick="showPage('projects',document.querySelector('[data-page=projects]'))">Voir tout →</button>
+            </div>
+            <table class="data-table">
+              <thead><tr><th>Projet</th><th>Budget</th><th>Statut</th><th>Avancement</th></tr></thead>
+              <tbody>
+                <tr><td class="td-primary">Refonte Digitale – Arcane</td><td>32 000 €</td><td><span class="badge badge-blue">En cours</span></td><td><div class="progress"><div class="progress-fill" style="background:var(--blue);width:68%"></div></div></td></tr>
+                <tr><td class="td-primary">App Mobile – NovaTech</td><td>18 500 €</td><td><span class="badge badge-orange">En cours</span></td><td><div class="progress"><div class="progress-fill" style="background:var(--orange);width:42%"></div></div></td></tr>
+                <tr><td class="td-primary">Branding – Studio K</td><td>8 200 €</td><td><span class="badge badge-green">Terminé</span></td><td><div class="progress"><div class="progress-fill" style="background:var(--green);width:100%"></div></div></td></tr>
+                <tr><td class="td-primary">SEO – Pixel Factory</td><td>5 400 €</td><td><span class="badge badge-orange">En cours</span></td><td><div class="progress"><div class="progress-fill" style="background:var(--orange);width:55%"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="data-card">
+            <div class="data-card-header">
+              <div class="data-card-title">Tâches urgentes</div>
+              <button class="btn btn-ghost" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))">Voir tout →</button>
+            </div>
+            <div id="taskList">
+              <div class="task-item" onclick="toggleTask(this)"><div class="task-check"></div><div class="task-info"><div class="task-name">Envoyer devis à Lumière Collective</div><div class="task-meta"><span>📅 Aujourd'hui</span><span class="badge badge-red">Urgent</span></div></div></div>
+              <div class="task-item" onclick="toggleTask(this)"><div class="task-check"></div><div class="task-info"><div class="task-name">Réviser contrat Arcane v2.1</div><div class="task-meta"><span>📅 Demain</span><span class="badge badge-orange">Priorité haute</span></div></div></div>
+              <div class="task-item" onclick="toggleTask(this)"><div class="task-check done"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="task-info"><div class="task-name done">Appel client NovaTech</div><div class="task-meta"><span>📅 Hier</span><span class="badge badge-green">Terminé</span></div></div></div>
+              <div class="task-item" onclick="toggleTask(this)"><div class="task-check"></div><div class="task-info"><div class="task-name">Facturer Studio K — livrables finaux</div><div class="task-meta"><span>📅 Vendredi</span><span class="badge badge-blue">Normal</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div id="page-clients" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Clients</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">24 clients actifs</div></div>
+        <div class="header-actions">
+          <div class="search-bar"><span>🔍</span><input type="text" placeholder="Rechercher un client..."></div>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Nouveau client</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="clients-grid">
+          <div class="client-card">
+            <div class="client-top">
+              <div class="avatar" style="background:linear-gradient(135deg,#7C3AED,#9333EA);color:#fff;width:42px;height:42px;font-size:.85rem">AR</div>
+              <div><div style="font-weight:600">Arcane Studio</div><div style="font-size:.75rem;color:var(--text-dim)">Design & Branding</div></div>
+            </div>
+            <div class="client-details">
+              <div class="client-detail">✉️ contact@arcane-studio.fr</div>
+              <div class="client-detail">📞 +33 6 12 34 56 78</div>
+              <div class="client-detail">🏢 Paris, France</div>
+            </div>
+            <div class="client-footer">
+              <span class="badge badge-blue">2 projets actifs</span>
+              <span class="client-revenue">32 000 €</span>
+            </div>
+          </div>
+          <div class="client-card">
+            <div class="client-top">
+              <div class="avatar" style="background:linear-gradient(135deg,#3B82F6,#60A5FA);color:#fff;width:42px;height:42px;font-size:.85rem">NT</div>
+              <div><div style="font-weight:600">NovaTech</div><div style="font-size:.75rem;color:var(--text-dim)">Développement logiciel</div></div>
+            </div>
+            <div class="client-details">
+              <div class="client-detail">✉️ ceo@novatech.io</div>
+              <div class="client-detail">📞 +33 7 98 76 54 32</div>
+              <div class="client-detail">🏢 Lyon, France</div>
+            </div>
+            <div class="client-footer">
+              <span class="badge badge-orange">1 projet en cours</span>
+              <span class="client-revenue">18 500 €</span>
+            </div>
+          </div>
+          <div class="client-card">
+            <div class="client-top">
+              <div class="avatar" style="background:linear-gradient(135deg,#22C55E,#4ADE80);color:#fff;width:42px;height:42px;font-size:.85rem">SK</div>
+              <div><div style="font-weight:600">Studio K</div><div style="font-size:.75rem;color:var(--text-dim)">Communication</div></div>
+            </div>
+            <div class="client-details">
+              <div class="client-detail">✉️ hello@studiok.co</div>
+              <div class="client-detail">📞 +33 6 55 44 33 22</div>
+              <div class="client-detail">🏢 Bordeaux, France</div>
+            </div>
+            <div class="client-footer">
+              <span class="badge badge-green">Projet terminé</span>
+              <span class="client-revenue">8 200 €</span>
+            </div>
+          </div>
+          <div class="client-card">
+            <div class="client-top">
+              <div class="avatar" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:#fff;width:42px;height:42px;font-size:.85rem">PF</div>
+              <div><div style="font-weight:600">Pixel Factory</div><div style="font-size:.75rem;color:var(--text-dim)">E-commerce</div></div>
+            </div>
+            <div class="client-details">
+              <div class="client-detail">✉️ info@pixel-factory.fr</div>
+              <div class="client-detail">📞 +33 6 11 22 33 44</div>
+              <div class="client-detail">🏢 Marseille, France</div>
+            </div>
+            <div class="client-footer">
+              <span class="badge badge-orange">1 projet en cours</span>
+              <span class="client-revenue">5 400 €</span>
+            </div>
+          </div>
+          <div class="client-card">
+            <div class="client-top">
+              <div class="avatar" style="background:linear-gradient(135deg,#EF4444,#F87171);color:#fff;width:42px;height:42px;font-size:.85rem">LC</div>
+              <div><div style="font-weight:600">Lumière Collective</div><div style="font-size:.75rem;color:var(--text-dim)">Événementiel</div></div>
+            </div>
+            <div class="client-details">
+              <div class="client-detail">✉️ contact@lumiere.co</div>
+              <div class="client-detail">📞 +33 7 66 55 44 33</div>
+              <div class="client-detail">🏢 Nantes, France</div>
+            </div>
+            <div class="client-footer">
+              <span class="badge badge-purple">Prospect</span>
+              <span class="client-revenue" style="color:var(--text-dim)">—</span>
+            </div>
+          </div>
+          <div class="client-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.75rem;min-height:180px">
+            <div style="font-size:1.5rem">+</div>
+            <div style="font-size:.875rem;color:var(--text-muted)">Ajouter un client</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div id="page-projects" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Projets</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">8 en cours · 14 terminés · 2 en pause</div></div>
+        <div class="header-actions">
+          <button class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem">Filtrer</button>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Nouveau projet</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="data-card">
+          <div class="data-card-header">
+            <div class="data-card-title">Tous les projets</div>
+            <div style="display:flex;gap:.5rem">
+              <span class="stat-pill"><span class="dot" style="background:var(--blue)"></span>En cours (8)</span>
+              <span class="stat-pill"><span class="dot" style="background:var(--green)"></span>Terminés (14)</span>
+              <span class="stat-pill"><span class="dot" style="background:var(--orange)"></span>Pause (2)</span>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Nom du projet</th><th>Client</th><th>Budget</th><th>Dates</th><th>Statut</th><th>Avancement</th></tr></thead>
+            <tbody>
+              <tr><td class="td-primary">Refonte Digitale – Arcane</td><td>Arcane Studio</td><td>32 000 €</td><td>01/06 → 31/08</td><td><span class="badge badge-blue">En cours</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--blue);width:68%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">68%</span></div></td></tr>
+              <tr><td class="td-primary">App Mobile – NovaTech</td><td>NovaTech</td><td>18 500 €</td><td>15/06 → 30/09</td><td><span class="badge badge-orange">En cours</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--orange);width:42%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">42%</span></div></td></tr>
+              <tr><td class="td-primary">Stratégie SEO Q3 – Pixel Factory</td><td>Pixel Factory</td><td>5 400 €</td><td>01/07 → 30/09</td><td><span class="badge badge-orange">En cours</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--orange);width:55%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">55%</span></div></td></tr>
+              <tr><td class="td-primary">Branding complet – Studio K</td><td>Studio K</td><td>8 200 €</td><td>01/04 → 30/06</td><td><span class="badge badge-green">Terminé</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--green);width:100%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">100%</span></div></td></tr>
+              <tr><td class="td-primary">Campagne Social Media – Orbis</td><td>Orbis Digital</td><td>4 200 €</td><td>01/05 → 31/05</td><td><span class="badge badge-green">Terminé</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--green);width:100%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">100%</span></div></td></tr>
+              <tr><td class="td-primary">Audit UX – Fenix Labs</td><td>Fenix Labs</td><td>6 800 €</td><td>01/07 → —</td><td><span class="badge" style="background:rgba(107,114,128,.15);color:var(--text-dim)">En pause</span></td><td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress" style="flex:1"><div class="progress-fill" style="background:var(--text-dim);width:25%"></div></div><span class="mono" style="font-size:.7rem;color:var(--text-dim)">25%</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div id="page-tasks" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Tâches</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">12 tâches · 4 urgentes aujourd'hui</div></div>
+        <div class="header-actions">
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+          <div class="data-card">
+            <div class="data-card-header"><div class="data-card-title">À faire <span class="badge badge-red" style="margin-left:.5rem">5</span></div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-info"><div class="task-name">Envoyer devis à Lumière Collective</div><div class="task-meta"><span>Aujourd'hui</span><span class="badge badge-red">Urgent</span></div></div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-info"><div class="task-name">Réviser contrat Arcane v2.1</div><div class="task-meta"><span>Demain</span><span class="badge badge-orange">Haute priorité</span></div></div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-info"><div class="task-name">Facturer Studio K livrables finaux</div><div class="task-meta"><span>Vendredi</span><span class="badge badge-blue">Normal</span></div></div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-info"><div class="task-name">Mettre à jour portfolio 2025</div><div class="task-meta"><span>Cette semaine</span><span class="badge badge-blue">Normal</span></div></div></div>
+            <div class="task-item"><div class="task-check"></div><div class="task-info"><div class="task-name">Réunion bilan mensuel</div><div class="task-meta"><span>30 juillet</span><span class="badge badge-blue">Normal</span></div></div></div>
+          </div>
+          <div class="data-card">
+            <div class="data-card-header"><div class="data-card-title">En cours <span class="badge badge-orange" style="margin-left:.5rem">4</span></div></div>
+            <div class="task-item"><div class="task-check" style="border-color:var(--orange);background:var(--orange-bg)"></div><div class="task-info"><div class="task-name">Maquettes App Mobile NovaTech v3</div><div class="task-meta"><span>En cours</span><span class="badge badge-blue">Design</span></div></div></div>
+            <div class="task-item"><div class="task-check" style="border-color:var(--orange);background:var(--orange-bg)"></div><div class="task-info"><div class="task-name">Rédaction stratégie SEO Q3</div><div class="task-meta"><span>En cours</span><span class="badge badge-orange">SEO</span></div></div></div>
+            <div class="task-item"><div class="task-check" style="border-color:var(--orange);background:var(--orange-bg)"></div><div class="task-info"><div class="task-name">Analyse concurrentielle Arcane</div><div class="task-meta"><span>En cours</span><span class="badge badge-purple">Recherche</span></div></div></div>
+            <div class="task-item"><div class="task-check" style="border-color:var(--orange);background:var(--orange-bg)"></div><div class="task-info"><div class="task-name">Configuration Analytics Studio K</div><div class="task-meta"><span>En cours</span><span class="badge badge-blue">Dev</span></div></div></div>
+          </div>
+          <div class="data-card">
+            <div class="data-card-header"><div class="data-card-title">Terminées <span class="badge badge-green" style="margin-left:.5rem">3</span></div></div>
+            <div class="task-item"><div class="task-check done"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="task-info"><div class="task-name done">Appel client NovaTech</div><div class="task-meta"><span>Hier</span><span class="badge badge-green">Terminé</span></div></div></div>
+            <div class="task-item"><div class="task-check done"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="task-info"><div class="task-name done">Livraison branding Studio K</div><div class="task-meta"><span>30 juin</span><span class="badge badge-green">Terminé</span></div></div></div>
+            <div class="task-item"><div class="task-check done"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="task-info"><div class="task-name done">Publication rapport mensuel</div><div class="task-meta"><span>1er juillet</span><span class="badge badge-green">Terminé</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCES -->
+    <div id="page-finances" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Finances</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">Juillet 2025 · Profit net : 61 400 €</div></div>
+        <div class="header-actions">
+          <select style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.4rem .875rem;font-size:.8rem;color:var(--text);cursor:pointer">
+            <option>Juillet 2025</option><option>Juin 2025</option>
+          </select>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">💶 Revenus</div>
+            <div class="metric-value" style="color:var(--green)">84 500 €</div>
+            <span class="metric-change up">▲ +12.4% vs juin</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">📉 Dépenses</div>
+            <div class="metric-value" style="color:var(--red)">23 100 €</div>
+            <span class="metric-change down">▲ +3.2% vs juin</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">✨ Profit net</div>
+            <div class="metric-value" style="color:var(--green)">61 400 €</div>
+            <span class="metric-change up">▲ +18.7% vs juin</span>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">⏳ À encaisser</div>
+            <div class="metric-value" style="color:var(--orange)">14 800 €</div>
+            <span class="metric-change" style="color:var(--orange);background:var(--orange-bg)">3 factures</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="data-card">
+            <div class="data-card-header"><div class="data-card-title">💰 Revenus récents</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--green-bg)">💶</div><div class="fin-info"><div class="fin-name">Acompte Arcane — Refonte</div><div class="fin-date">15 juillet 2025</div></div><div class="fin-amount" style="color:var(--green)">+16 000 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--green-bg)">💶</div><div class="fin-info"><div class="fin-name">Solde NovaTech — Phase 1</div><div class="fin-date">12 juillet 2025</div></div><div class="fin-amount" style="color:var(--green)">+9 250 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--green-bg)">💶</div><div class="fin-info"><div class="fin-name">Mensuel Pixel Factory — SEO</div><div class="fin-date">10 juillet 2025</div></div><div class="fin-amount" style="color:var(--green)">+1 800 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--green-bg)">💶</div><div class="fin-info"><div class="fin-name">Livraison finale Studio K</div><div class="fin-date">01 juillet 2025</div></div><div class="fin-amount" style="color:var(--green)">+4 100 €</div></div>
+          </div>
+          <div class="data-card">
+            <div class="data-card-header"><div class="data-card-title">📉 Dépenses récentes</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--red-bg)">📤</div><div class="fin-info"><div class="fin-name">Adobe Creative Cloud</div><div class="fin-date">01 juillet 2025 · Logiciels</div></div><div class="fin-amount" style="color:var(--red)">-89 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--red-bg)">📤</div><div class="fin-info"><div class="fin-name">Hébergement serveurs</div><div class="fin-date">05 juillet 2025 · Infrastructure</div></div><div class="fin-amount" style="color:var(--red)">-340 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--red-bg)">📤</div><div class="fin-info"><div class="fin-name">Sous-traitant design — Arcane</div><div class="fin-date">08 juillet 2025 · Personnel</div></div><div class="fin-amount" style="color:var(--red)">-2 400 €</div></div>
+            <div class="fin-row"><div class="fin-icon" style="background:var(--red-bg)">📤</div><div class="fin-info"><div class="fin-name">Formation UX Research</div><div class="fin-date">10 juillet 2025 · Formation</div></div><div class="fin-amount" style="color:var(--red)">-490 €</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICES -->
+    <div id="page-invoices" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Factures</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">18 factures · 3 en attente · 14 800 € à encaisser</div></div>
+        <div class="header-actions">
+          <button class="btn btn-outline" style="font-size:.8rem;padding:.5rem 1rem">📥 Exporter PDF</button>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:.5rem 1rem">+ Nouvelle facture</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="data-card">
+          <div class="inv-row inv-header"><div>Facture</div><div>Montant</div><div>Échéance</div><div>Statut</div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-047</div><div style="font-size:.75rem;color:var(--text-dim)">Arcane Studio · Acompte Refonte</div></div><div class="mono" style="font-weight:600">16 000 €</div><div style="font-size:.8rem;color:var(--text-dim)">30 juillet</div><div><span class="badge badge-orange">En attente</span></div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-046</div><div style="font-size:.75rem;color:var(--text-dim)">NovaTech · Solde Phase 1</div></div><div class="mono" style="font-weight:600">9 250 €</div><div style="font-size:.8rem;color:var(--text-dim)">25 juillet</div><div><span class="badge badge-red">En retard</span></div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-045</div><div style="font-size:.75rem;color:var(--text-dim)">Pixel Factory · SEO Juillet</div></div><div class="mono" style="font-weight:600">1 800 €</div><div style="font-size:.8rem;color:var(--text-dim)">20 juillet</div><div><span class="badge badge-orange">En attente</span></div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-044</div><div style="font-size:.75rem;color:var(--text-dim)">Studio K · Livraison finale</div></div><div class="mono" style="font-weight:600">4 100 €</div><div style="font-size:.8rem;color:var(--text-dim)">01 juillet</div><div><span class="badge badge-green">Payée</span></div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-043</div><div style="font-size:.75rem;color:var(--text-dim)">Orbis Digital · Campagne SM</div></div><div class="mono" style="font-weight:600">4 200 €</div><div style="font-size:.8rem;color:var(--text-dim)">28 juin</div><div><span class="badge badge-green">Payée</span></div></div>
+          <div class="inv-row"><div><div style="font-weight:600;font-size:.85rem">FAC-2025-042</div><div style="font-size:.75rem;color:var(--text-dim)">NovaTech · Acompte App Mobile</div></div><div class="mono" style="font-weight:600">9 250 €</div><div style="font-size:.8rem;color:var(--text-dim)">15 juin</div><div><span class="badge badge-green">Payée</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="page-analytics" class="page-section" style="display:none">
+      <div class="app-header">
+        <div><h1>Analytics</h1><div style="font-size:.75rem;color:var(--text-dim);margin-top:.125rem">Performance globale · Janvier – Juillet 2025</div></div>
+        <div class="header-actions">
+          <select style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.4rem .875rem;font-size:.8rem;color:var(--text)">
+            <option>2025 YTD</option><option>Q2 2025</option><option>Q1 2025</option>
+          </select>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="metrics-row" style="grid-template-columns:repeat(5,1fr)">
+          <div class="metric-card"><div class="metric-label">📊 CA YTD</div><div class="metric-value">84 500 €</div><span class="metric-change up">▲ +22%</span></div>
+          <div class="metric-card"><div class="metric-label">💎 Taux de marge</div><div class="metric-value">72.7%</div><span class="metric-change up">▲ +4.1 pts</span></div>
+          <div class="metric-card"><div class="metric-label">🎯 Projets livrés</div><div class="metric-value">14</div><span class="metric-change up">+5 vs 2024</span></div>
+          <div class="metric-card"><div class="metric-label">⚡ CA/client</div><div class="metric-value">3 521 €</div><span class="metric-change up">▲ +8.3%</span></div>
+          <div class="metric-card"><div class="metric-label">🔄 Clients récurrents</div><div class="metric-value">67%</div><span class="metric-change up">▲ +12 pts</span></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Revenus vs Dépenses</div><div class="chart-sub">Mensuel 2025</div></div>
+            </div>
+            <div class="chart-wrap"><canvas id="analyticsChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">Répartition CA</div><div class="chart-sub">Par client</div></div>
+            </div>
+            <div class="chart-wrap"><canvas id="clientPieChart"></canvas></div>
+          </div>
+        </div>
+        <div class="ai-panel">
+          <div class="ai-header">
+            <div class="ai-icon">✦</div>
+            <div><div class="ai-title">Prévisions IA — Q4 2025</div></div>
+          </div>
+          <div class="ai-content">
+            Sur la base de votre dynamique actuelle, <strong>le CA annuel 2025 devrait atteindre 145 000 – 160 000 €</strong>, soit une croissance de 28% par rapport à 2024. Points d'attention : diversifier votre clientèle (Arcane représente 38% du CA) et anticiper un creux saisonnier en août. Je recommande de prospecter 3 nouveaux clients d'ici fin juillet pour sécuriser Q4.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openApp(){
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('landing').style.display='none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('app').style.display='flex';
+  initCharts();
+}
+function backToLanding(){
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('app').style.display='none';
+  document.getElementById('landing').classList.add('active');
+  document.getElementById('landing').style.display='block';
+}
+function showPage(name, el){
+  document.querySelectorAll('.page-section').forEach(p=>p.style.display='none');
+  document.getElementById('page-'+name).style.display='block';
+  document.getElementById('page-'+name).classList.add('page-section');
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(name==='analytics') setTimeout(initAnalyticsCharts,100);
+}
+function toggleTask(item){
+  const check = item.querySelector('.task-check');
+  const name = item.querySelector('.task-name');
+  if(check.classList.contains('done')){
+    check.classList.remove('done');
+    check.innerHTML='';
+    name.classList.remove('done');
+  } else {
+    check.classList.add('done');
+    check.innerHTML='<svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l2.5 2.5L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
+    name.classList.add('done');
+  }
+}
+let chartsInit=false;
+function initCharts(){
+  if(chartsInit) return; chartsInit=true;
+  setTimeout(()=>{
+    const labels=['Jan','Fév','Mar','Avr','Mai','Jun','Jul'];
+    const rev=[9800,11200,10500,14000,12800,16200,20000];
+    const dep=[3100,3400,3200,4100,3800,4500,5000];
+    
+    new Chart(document.getElementById('revenueChart'),{
+      type:'line',
+      data:{labels,datasets:[{
+        label:'Revenus',data:rev,
+        borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.1)',
+        tension:.4,fill:true,borderWidth:2,pointRadius:3,pointBackgroundColor:'#7C3AED'
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B7280',font:{size:11}}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B7280',font:{size:11},callback:v=>v/1000+'k€'}}
+      }}
+    });
+
+    new Chart(document.getElementById('expenseChart'),{
+      type:'doughnut',
+      data:{
+        labels:['Personnel','Logiciels','Infra','Formation','Autre'],
+        datasets:[{data:[45,20,15,10,10],
+          backgroundColor:['#7C3AED','#3B82F6','#22C55E','#F59E0B','#EF4444'],
+          borderWidth:0,hoverOffset:4
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{
+        legend:{position:'bottom',labels:{color:'#9CA3AF',font:{size:10},padding:8,boxWidth:8}}
+      }}
+    });
+  },200);
+}
+function initAnalyticsCharts(){
+  const labels=['Jan','Fév','Mar','Avr','Mai','Jun','Jul'];
+  const rev=[9800,11200,10500,14000,12800,16200,20000];
+  const dep=[3100,3400,3200,4100,3800,4500,5000];
+  
+  const ac = document.getElementById('analyticsChart');
+  if(ac && !ac._chartjs){
+    new Chart(ac,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Revenus',data:rev,backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},
+        {label:'Dépenses',data:dep,backgroundColor:'rgba(239,68,68,.5)',borderRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9CA3AF',font:{size:10}}}},scales:{
+        x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B7280',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#6B7280',font:{size:10},callback:v=>v/1000+'k€'}}
+      }}
+    });
+  }
+
+  const cp = document.getElementById('clientPieChart');
+  if(cp && !cp._chartjs){
+    new Chart(cp,{
+      type:'doughnut',
+      data:{
+        labels:['Arcane','NovaTech','Studio K','Pixel Factory','Autres'],
+        datasets:[{data:[38,22,10,6,24],
+          backgroundColor:['#7C3AED','#3B82F6','#22C55E','#F59E0B','#9CA3AF'],
+          borderWidth:0,hoverOffset:4
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{
+        legend:{position:'bottom',labels:{color:'#9CA3AF',font:{size:10},padding:8,boxWidth:8}}
+      }}
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+packages:
+  "recharts": "Used for the dashboard and analytics charts"
+  "framer-motion": "Used for page transitions, modals, and interactive animations"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+  "lucide-react": "Beautiful consistent icons for the dashboard"
+
+images: []
+
+notes:
+  - "App is entirely frontend-only with robust mock data and TanStack Query"
+  - "Using wouter for routing between landing page and the dashboard app shell"
+  - "All data mutations update the local mock state and invalidate queries to instantly reflect in the UI"
