@@ -32,8 +32,8 @@ export default function Landing() {
             <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Tarifs</a>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => setLocation('/app')}>Se connecter</Button>
-            <Button onClick={() => setLocation('/app')}>Démarrer gratuitement</Button>
+            <Button variant="ghost" onClick={() => setLocation('/login')}>Se connecter</Button>
+            <Button onClick={() => setLocation('/login?plan=free')}>Démarrer gratuitement</Button>
           </div>
         </div>
       </nav>
@@ -53,20 +53,20 @@ export default function Landing() {
               Finances, clients, projets, tâches, documents et analytics. Tout ce dont vous avez besoin pour faire tourner votre business, réuni en une seule plateforme.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Button size="lg" onClick={() => setLocation('/app')} className="w-full sm:w-auto text-lg px-8">
+              <Button size="lg" onClick={() => setLocation('/login?plan=free')} className="w-full sm:w-auto text-lg px-8">
                 Commencer — c'est gratuit
               </Button>
-              <Button variant="outline" size="lg" onClick={() => setLocation('/app')} className="w-full sm:w-auto text-lg px-8 gap-2">
-                Voir la démo <ChevronRight className="w-4 h-4" />
+              <Button variant="outline" size="lg" onClick={() => setLocation('/login')} className="w-full sm:w-auto text-lg px-8 gap-2">
+                Se connecter <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-10 border-t border-border/50">
               {[
-                { n: "2 400+", l: "Entrepreneurs" },
-                { n: "98%", l: "Satisfaction" },
-                { n: "12h", l: "Gagnées / semaine" },
-                { n: "4.9★", l: "Note moyenne" }
+                { n: "100%", l: "Local & sécurisé" },
+                { n: "5 min", l: "Pour démarrer" },
+                { n: "0 €", l: "Pour commencer" },
+                { n: "∞", l: "Possibilités" },
               ].map((stat, i) => (
                 <div key={i} className="text-center">
                   <div className="text-3xl font-bold font-display text-foreground">{stat.n}</div>
@@ -82,7 +82,7 @@ export default function Landing() {
           <motion.div 
             initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}
             className="rounded-2xl border border-border bg-[#0D0D15] shadow-2xl shadow-primary/10 overflow-hidden cursor-pointer group"
-            onClick={() => setLocation('/app')}
+            onClick={() => setLocation('/login')}
           >
             <div className="h-10 bg-[#16161F] border-b border-border flex items-center px-4 gap-2">
               <div className="w-3 h-3 rounded-full bg-[#FF5F57]"></div>
@@ -162,43 +162,66 @@ export default function Landing() {
             {/* Free */}
             <div className="bg-card border border-border rounded-2xl p-8">
               <h3 className="text-xl font-medium mb-2">Free</h3>
-              <div className="text-4xl font-display font-bold mb-2">0€ <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
-              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour tester et démarrer.</p>
+              <div className="text-4xl font-display font-bold mb-2">0 FCFA <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
+              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour découvrir la plateforme.</p>
               <ul className="space-y-3 mb-8 text-sm">
-                {["2 clients actifs", "3 projets simultanés", "10 factures / mois", "5 Go de stockage", "Dashboard de base"].map((f,i)=>(
+                {[
+                  "1 client actif",
+                  "1 projet simultané",
+                  "5 factures / mois",
+                  "20 tâches",
+                  "Dashboard simplifié",
+                  "Finances basiques",
+                ].map((f,i)=>(
                   <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {f}</li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full" onClick={() => setLocation('/app')}>Commencer gratuitement</Button>
+              <Button variant="outline" className="w-full" onClick={() => setLocation('/login?plan=free')}>Commencer gratuitement</Button>
             </div>
-            
+
             {/* Pro */}
             <div className="bg-card border-2 border-primary rounded-2xl p-8 relative transform md:-translate-y-4 shadow-2xl shadow-primary/20">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
                 ⭐ Le plus populaire
               </div>
               <h3 className="text-xl font-medium mb-2">Pro</h3>
-              <div className="text-4xl font-display font-bold mb-2">29€ <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
-              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour les entrepreneurs actifs.</p>
+              <div className="text-4xl font-display font-bold mb-2">6 500 FCFA <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
+              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour les indépendants actifs.</p>
               <ul className="space-y-3 mb-8 text-sm">
-                {["Clients illimités", "Projets illimités", "Factures illimitées", "50 Go de stockage", "Analytics avancés", "IA — analyses & prévisions"].map((f,i)=>(
+                {[
+                  "Clients, projets & factures illimités",
+                  "Tâches illimitées",
+                  "Analytics complets + export",
+                  "50 Go de stockage",
+                  "✦ IA — analyse financière",
+                  "✦ IA — alertes & suggestions",
+                ].map((f,i)=>(
                   <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {f}</li>
                 ))}
               </ul>
-              <Button className="w-full" onClick={() => setLocation('/app')}>Choisir Pro</Button>
+              <Button className="w-full" onClick={() => setLocation('/login?plan=pro')}>Choisir Pro</Button>
             </div>
 
             {/* Business */}
-            <div className="bg-card border border-border rounded-2xl p-8">
-              <h3 className="text-xl font-medium mb-2">Business</h3>
-              <div className="text-4xl font-display font-bold mb-2">79€ <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
-              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour les équipes en croissance.</p>
+            <div className="bg-card border border-amber-500/40 rounded-2xl p-8">
+              <h3 className="text-xl font-medium mb-2 text-amber-400">Business</h3>
+              <div className="text-4xl font-display font-bold mb-2">14 000 FCFA <span className="text-base font-sans text-muted-foreground font-normal">/ mois</span></div>
+              <p className="text-sm text-muted-foreground mb-6 pb-6 border-b border-border">Pour les équipes & agences.</p>
               <ul className="space-y-3 mb-8 text-sm">
-                {["Tout Pro inclus", "Jusqu'à 10 membres", "API & intégrations", "200 Go de stockage", "Support prioritaire", "Compte dédié"].map((f,i)=>(
-                  <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {f}</li>
+                {[
+                  "Tout Pro inclus",
+                  "Jusqu'à 10 collaborateurs",
+                  "Rôles & permissions",
+                  "200 Go de stockage",
+                  "✦ IA avancée — prévisions",
+                  "✦ IA — rapports automatiques",
+                  "API & webhooks",
+                  "Support prioritaire dédié",
+                ].map((f,i)=>(
+                  <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400" /> {f}</li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full" onClick={() => setLocation('/app')}>Choisir Business</Button>
+              <Button variant="outline" className="w-full border-amber-500/40 hover:border-amber-400" onClick={() => setLocation('/login?plan=business')}>Choisir Business</Button>
             </div>
           </div>
         </section>
@@ -208,8 +231,8 @@ export default function Landing() {
           <div className="bg-gradient-to-b from-primary/10 to-transparent border border-primary/20 rounded-3xl p-12 relative overflow-hidden">
             <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
             <h2 className="text-3xl md:text-5xl font-bold font-display mb-4 relative z-10">Prêt à prendre le contrôle<br/>de votre business ?</h2>
-            <p className="text-muted-foreground mb-8 relative z-10">Rejoignez 2 400+ entrepreneurs qui pilotent leur activité avec Cockpit.</p>
-            <Button size="lg" className="relative z-10" onClick={() => setLocation('/app')}>Démarrer maintenant — gratuit</Button>
+            <p className="text-muted-foreground mb-8 relative z-10">Pilotez votre activité avec Cockpit — la plateforme pensée pour les entrepreneurs africains.</p>
+            <Button size="lg" className="relative z-10" onClick={() => setLocation('/login?plan=free')}>Démarrer maintenant — gratuit</Button>
           </div>
         </section>
       </main>

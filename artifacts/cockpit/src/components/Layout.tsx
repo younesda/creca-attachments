@@ -1,10 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, Users, FolderKanban, CheckSquare, 
-  CircleDollarSign, FileText, TrendingUp, Files, Settings, 
-  LogOut, Bell, Search, Plus
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  LayoutDashboard, Users, FolderKanban, CheckSquare,
+  CircleDollarSign, FileText, TrendingUp, Files, Settings,
+  LogOut, Sparkles, Lock
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -18,13 +19,27 @@ const NAV_ITEMS = [
   { id: "invoices", icon: FileText, label: "Factures", href: "/app/invoices" },
   { section: "Analyse" },
   { id: "analytics", icon: TrendingUp, label: "Analytics", href: "/app/analytics" },
+  { id: "ai", icon: Sparkles, label: "Assistant IA", href: "/app/ai", proOnly: true },
   { section: "Compte" },
   { id: "docs", icon: Files, label: "Documents", href: "#" },
   { id: "settings", icon: Settings, label: "Paramètres", href: "#" },
 ];
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Plan Free",
+  pro: "Plan Pro",
+  business: "Plan Business",
+};
+
+const PLAN_COLORS: Record<string, string> = {
+  free: "text-muted-foreground",
+  pro: "text-primary",
+  business: "text-amber-400",
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { displayName, initials, plan, signOut } = useAuth();
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
@@ -39,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ← Accueil
           </Link>
         </div>
-        
+
         <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           {NAV_ITEMS.map((item, idx) => {
             if (item.section) {
@@ -49,35 +64,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               );
             }
-            
+
             const Icon = item.icon!;
             const isActive = location === item.href || (item.href !== "/app" && location.startsWith(item.href!));
-            
+            const isLocked = item.proOnly && plan === "free";
+
             return (
               <Link key={item.id} href={item.href!} className="block">
                 <div className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer",
-                  isActive 
-                    ? "bg-primary-glow text-[#C4B5FD] font-medium relative after:absolute after:left-0 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-5 after:bg-primary after:rounded-r-full" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  isLocked
+                    ? "text-muted-foreground/50 cursor-not-allowed"
+                    : isActive
+                      ? "bg-primary-glow text-[#C4B5FD] font-medium relative after:absolute after:left-0 after:top-1/2 after:-translate-y-1/2 after:w-1 after:h-5 after:bg-primary after:rounded-r-full"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                 )}>
                   <Icon className="w-4 h-4" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {isLocked && <Lock className="w-3 h-3 opacity-50" />}
                 </div>
               </Link>
             );
           })}
         </nav>
-        
-        <div className="p-4 border-t border-border flex items-center gap-3 hover:bg-white/5 cursor-pointer transition-colors">
-          <div className="w-9 h-9 rounded-full bg-border flex items-center justify-center font-bold text-xs">
-            TM
+
+        {/* User footer */}
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-bold text-xs text-primary flex-shrink-0">
+              {initials}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <div className="text-sm font-semibold truncate">{displayName}</div>
+              <div className={cn("text-[11px] truncate font-medium", PLAN_COLORS[plan])}>
+                ✦ {PLAN_LABELS[plan]}
+              </div>
+            </div>
+            <button
+              onClick={signOut}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-white/5"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="text-sm font-semibold truncate">Thomas Martin</div>
-            <div className="text-[11px] text-primary truncate">✦ Plan Pro</div>
-          </div>
-          <LogOut className="w-4 h-4 text-muted-foreground" />
         </div>
       </aside>
 

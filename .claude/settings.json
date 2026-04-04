@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/X1 Carbon/Documents/Creca-Attachments/**)"
+    ]
+  }
+}

@@ -1,18 +1,24 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 import { PageHeader } from "@/components/Layout";
 import { Card, Badge, Button, Input, Modal, Label } from "@/components/UI";
 import { useTasks, useToggleTask, useAddTask } from "@/hooks/use-tasks";
-import { Plus, Check, Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { isAtLimit } from "@/lib/plan-limits";
+import { Plus, Check, Calendar, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Tasks() {
   const { data: tasks = [] } = useTasks();
   const toggleTask = useToggleTask();
   const addTask = useAddTask();
-  
+  const { plan } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", date: "", priority: "Normal", priorityColor: "info" as any });
+
+  const activeTasks = tasks.filter(t => t.status !== "done");
+  const atLimit = isAtLimit(plan, "tasks", activeTasks.length);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,12 +39,37 @@ export default function Tasks() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <PageHeader title="Tâches" subtitle={`${tasks.length} tâches · ${columns[0].tasks.filter(t=>t.priorityColor==='danger').length} urgentes aujourd'hui`}>
-        <Button className="gap-2" onClick={() => setIsModalOpen(true)}><Plus className="w-4 h-4"/> Ajouter</Button>
+        {atLimit ? (
+          <Link href="/">
+            <Button variant="outline" className="gap-2 border-amber-500/40 text-amber-400 hover:border-amber-400">
+              <Lock className="w-4 h-4" /> Limite atteinte ({activeTasks.length}/20)
+            </Button>
+          </Link>
+        ) : (
+          <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Ajouter
+            {plan === "free" && <span className="text-[10px] opacity-60 ml-1">({activeTasks.length}/20)</span>}
+          </Button>
+        )}
       </PageHeader>
+
+      {atLimit && (
+        <div className="mx-8 mt-4 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between shrink-0">
+          <span className="text-sm text-amber-400 flex items-center gap-2">
+            <Lock className="w-4 h-4" /> Plan Free — 20 tâches actives maximum
+          </span>
+          <Link href="/">
+            <span className="text-xs bg-amber-500 hover:bg-amber-400 text-white px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer">
+              Passer Pro — illimité
+            </span>
+          </Link>
+        </div>
+      )}
 
       <div className="flex-1 overflow-x-auto p-8 relative z-10">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex gap-6 min-w-max h-full">
-          
+
           {columns.map(col => (
             <Card key={col.id} className="w-80 flex flex-col h-full bg-[#121218]/80 border-border/50">
               <div className="p-4 border-b border-border/50 flex justify-between items-center shrink-0">
@@ -49,8 +80,8 @@ export default function Tasks() {
                 {col.tasks.map(t => (
                   <div key={t.id} onClick={() => toggleTask.mutate(t.id)} className="bg-card border border-border p-3 rounded-lg hover:border-primary/50 transition-colors cursor-pointer group shadow-sm">
                     <div className="flex items-start gap-3">
-                      <div className={cn("mt-0.5 w-5 h-5 rounded flex items-center justify-center border-2 transition-colors shrink-0", 
-                        t.status === "done" ? "bg-success border-success" : 
+                      <div className={cn("mt-0.5 w-5 h-5 rounded flex items-center justify-center border-2 transition-colors shrink-0",
+                        t.status === "done" ? "bg-success border-success" :
                         t.status === "in_progress" ? "bg-warning-bg border-warning" :
                         "border-muted-foreground group-hover:border-primary")}>
                         {t.status === "done" && <Check className="w-3.5 h-3.5 text-white" />}
@@ -85,7 +116,7 @@ export default function Tasks() {
           <div><Label>Échéance</Label><Input required value={formData.date} onChange={e=>setFormData({...formData, date: e.target.value})} placeholder="Aujourd'hui, Demain..." /></div>
           <div>
             <Label>Priorité</Label>
-            <select 
+            <select
               required className="w-full bg-background border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               value={formData.priority}
               onChange={e => {

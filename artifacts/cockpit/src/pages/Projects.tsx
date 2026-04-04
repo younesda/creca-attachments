@@ -1,50 +1,110 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 import { PageHeader } from "@/components/Layout";
 import { Card, Badge, Button, Input, Modal, Label, Progress } from "@/components/UI";
 import { useProjects, useAddProject } from "@/hooks/use-projects";
-import { Filter, Plus } from "lucide-react";
+import { useClients } from "@/hooks/use-clients";
+import { useAuth } from "@/contexts/AuthContext";
+import { isAtLimit } from "@/lib/plan-limits";
+import { Filter, Plus, Lock } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function Projects() {
   const { data: projects = [] } = useProjects();
+  const { data: clients = [] } = useClients();
   const addProject = useAddProject();
+  const { plan } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: "", client: "", budget: "", dates: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    clientId: "",
+    budget: "",
+    dates: "",
+  });
+
+  const atLimit = isAtLimit(plan, "projects", projects.length);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addProject.mutate({ ...formData, budget: Number(formData.budget) }, {
-      onSuccess: () => {
-        setIsModalOpen(false);
-        setFormData({ name: "", client: "", budget: "", dates: "" });
+    addProject.mutate(
+      {
+        name: formData.name,
+        clientId: formData.clientId || undefined,
+        client: clients.find(c => c.id === formData.clientId)?.name ?? formData.clientId,
+        budget: Number(formData.budget),
+        dates: formData.dates,
+      },
+      {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setFormData({ name: "", clientId: "", budget: "", dates: "" });
+        },
       }
-    });
+    );
   };
 
   const statusCounts = {
-    en_cours: projects.filter(p => p.status === 'En cours').length,
-    termines: projects.filter(p => p.status === 'Terminé').length,
-    pause: projects.filter(p => p.status === 'En pause').length,
+    en_cours: projects.filter(p => p.status === "En cours").length,
+    termines: projects.filter(p => p.status === "Terminé").length,
+    pause: projects.filter(p => p.status === "En pause").length,
   };
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <PageHeader title="Projets" subtitle={`${statusCounts.en_cours} en cours · ${statusCounts.termines} terminés · ${statusCounts.pause} en pause`}>
-        <Button variant="outline" className="gap-2"><Filter className="w-4 h-4"/> Filtrer</Button>
-        <Button className="gap-2" onClick={() => setIsModalOpen(true)}><Plus className="w-4 h-4"/> Nouveau projet</Button>
+      <PageHeader
+        title="Projets"
+        subtitle={`${statusCounts.en_cours} en cours · ${statusCounts.termines} terminés · ${statusCounts.pause} en pause`}
+      >
+        <Button variant="outline" className="gap-2">
+          <Filter className="w-4 h-4" /> Filtrer
+        </Button>
+        {atLimit ? (
+          <Link href="/">
+            <Button variant="outline" className="gap-2 border-amber-500/40 text-amber-400 hover:border-amber-400">
+              <Lock className="w-4 h-4" /> Limite atteinte
+            </Button>
+          </Link>
+        ) : (
+          <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
+            <Plus className="w-4 h-4" /> Nouveau projet
+          </Button>
+        )}
       </PageHeader>
 
+      {atLimit && (
+        <div className="mx-8 mt-4 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between shrink-0">
+          <span className="text-sm text-amber-400 flex items-center gap-2">
+            <Lock className="w-4 h-4" /> Plan Free — 1 projet maximum
+          </span>
+          <Link href="/">
+            <span className="text-xs bg-amber-500 hover:bg-amber-400 text-white px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer">
+              Passer Pro — projets illimités
+            </span>
+          </Link>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-8 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto">
-          
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="max-w-6xl mx-auto"
+        >
           <Card className="overflow-hidden">
             <div className="p-5 border-b border-border/50 flex justify-between items-center bg-white/[0.02]">
               <h3 className="font-semibold">Tous les projets</h3>
               <div className="flex gap-4">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-info"></span> En cours ({statusCounts.en_cours})</span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-success"></span> Terminés ({statusCounts.termines})</span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-warning"></span> Pause ({statusCounts.pause})</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-info" /> En cours ({statusCounts.en_cours})
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-success" /> Terminés ({statusCounts.termines})
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-warning" /> Pause ({statusCounts.pause})
+                </span>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -66,10 +126,14 @@ export default function Projects() {
                       <td className="px-6 py-4 text-muted-foreground">{p.client}</td>
                       <td className="px-6 py-4 font-mono">{formatCurrency(p.budget)}</td>
                       <td className="px-6 py-4 text-muted-foreground text-xs">{p.dates}</td>
-                      <td className="px-6 py-4"><Badge variant={p.statusColor}>{p.status}</Badge></td>
+                      <td className="px-6 py-4">
+                        <Badge variant={p.statusColor as "info" | "warning" | "success" | "muted"}>{p.status}</Badge>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex-1"><Progress value={p.progress} color={`var(--color-${p.statusColor})`} /></div>
+                          <div className="flex-1">
+                            <Progress value={p.progress} color={`var(--color-${p.statusColor})`} />
+                          </div>
                           <span className="text-xs font-mono text-muted-foreground w-8 text-right">{p.progress}%</span>
                         </div>
                       </td>
@@ -79,21 +143,70 @@ export default function Projects() {
               </table>
             </div>
           </Card>
-
         </motion.div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nouveau Projet">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><Label>Nom du projet</Label><Input required value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} placeholder="Ex: Refonte Site Web" /></div>
-          <div><Label>Client</Label><Input required value={formData.client} onChange={e=>setFormData({...formData, client: e.target.value})} placeholder="Ex: Studio K" /></div>
+          <div>
+            <Label>Nom du projet</Label>
+            <Input
+              required
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Refonte Site Web"
+            />
+          </div>
+          <div>
+            <Label>Client</Label>
+            {clients.length > 0 ? (
+              <select
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm outline-none text-foreground"
+                value={formData.clientId}
+                onChange={e => setFormData({ ...formData, clientId: e.target.value })}
+              >
+                <option value="">Sélectionner un client</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                value={formData.clientId}
+                onChange={e => setFormData({ ...formData, clientId: e.target.value })}
+                placeholder="Ajoutez d'abord un client"
+                disabled
+              />
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><Label>Budget (€)</Label><Input type="number" required value={formData.budget} onChange={e=>setFormData({...formData, budget: e.target.value})} placeholder="5000" /></div>
-            <div><Label>Période</Label><Input required value={formData.dates} onChange={e=>setFormData({...formData, dates: e.target.value})} placeholder="01/09 → 30/10" /></div>
+            <div>
+              <Label>Budget (€)</Label>
+              <Input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                value={formData.budget}
+                onChange={e => setFormData({ ...formData, budget: e.target.value })}
+                placeholder="5000"
+              />
+            </div>
+            <div>
+              <Label>Période</Label>
+              <Input
+                required
+                value={formData.dates}
+                onChange={e => setFormData({ ...formData, dates: e.target.value })}
+                placeholder="01/09 → 30/10"
+              />
+            </div>
           </div>
           <div className="pt-4 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-            <Button type="submit" disabled={addProject.isPending}>{addProject.isPending ? "Création..." : "Créer le projet"}</Button>
+            <Button type="submit" disabled={addProject.isPending}>
+              {addProject.isPending ? "Création..." : "Créer le projet"}
+            </Button>
           </div>
         </form>
       </Modal>
