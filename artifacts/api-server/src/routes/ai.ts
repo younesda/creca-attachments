@@ -60,15 +60,16 @@ async function getBusinessContext(userId: string) {
   const netProfit = totalRevenue - totalExpenses;
   const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : "0";
 
+  const fmt = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
   return `
-Données business en temps réel :
+Données business en temps réel (devise : FCFA) :
 - Clients actifs : ${clientCount.value}
 - Projets en cours : ${projectCount.value}
 - Tâches à faire : ${taskCount.value} (dont ${urgentCount.value} urgentes)
-- Revenus total : ${totalRevenue.toLocaleString("fr-FR")}€
-- Dépenses total : ${totalExpenses.toLocaleString("fr-FR")}€
-- Bénéfice net : ${netProfit.toLocaleString("fr-FR")}€ (marge ${margin}%)
-- Factures en attente : ${pendingInvoicesCount.value} factures — ${Number(pendingInvoicesSum?.value ?? 0).toLocaleString("fr-FR")}€ à encaisser
+- Revenus total : ${fmt(totalRevenue)}
+- Dépenses total : ${fmt(totalExpenses)}
+- Bénéfice net : ${fmt(netProfit)} (marge ${margin}%)
+- Factures en attente : ${pendingInvoicesCount.value} factures — ${fmt(Number(pendingInvoicesSum?.value ?? 0))} à encaisser
 `.trim();
 }
 

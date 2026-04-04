@@ -2,6 +2,8 @@ import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/use-profile";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 import {
   LayoutDashboard, Users, FolderKanban, CheckSquare,
   CircleDollarSign, FileText, TrendingUp, Files, Settings,
@@ -21,8 +23,8 @@ const NAV_ITEMS = [
   { id: "analytics", icon: TrendingUp, label: "Analytics", href: "/app/analytics" },
   { id: "ai", icon: Sparkles, label: "Assistant IA", href: "/app/ai", proOnly: true },
   { section: "Compte" },
-  { id: "docs", icon: Files, label: "Documents", href: "#" },
-  { id: "settings", icon: Settings, label: "Paramètres", href: "#" },
+  { id: "docs", icon: Files, label: "Documents", href: "/app/documents" },
+  { id: "settings", icon: Settings, label: "Paramètres", href: "/app/settings" },
 ];
 
 const PLAN_LABELS: Record<string, string> = {
@@ -40,6 +42,9 @@ const PLAN_COLORS: Record<string, string> = {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { displayName, initials, plan, signOut } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+
+  const showOnboarding = !profileLoading && (profile === null || profile?.onboardingCompleted === false);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
@@ -116,6 +121,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="absolute top-0 right-0 w-[600px] h-[300px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/4" />
         {children}
       </main>
+
+      {showOnboarding && <OnboardingWizard />}
     </div>
   );
 }

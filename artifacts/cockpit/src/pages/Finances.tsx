@@ -2,15 +2,16 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/Layout";
 import { Card, Button, Input, Modal, Label } from "@/components/UI";
-import { useFinances, useAddTransaction } from "@/hooks/use-finances";
+import { useFinances, useAddTransaction, useDeleteTransaction } from "@/hooks/use-finances";
 import { useInvoices } from "@/hooks/use-invoices";
-import { Plus, ArrowUpRight, ArrowDownRight, Euro, UploadCloud } from "lucide-react";
+import { Plus, ArrowUpRight, ArrowDownRight, UploadCloud, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function Finances() {
   const { data: transactions = [] } = useFinances();
   const { data: invoices = [] } = useInvoices();
   const addTx = useAddTransaction();
+  const deleteTx = useDeleteTransaction();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     type: "revenue",
@@ -112,7 +113,7 @@ export default function Finances() {
             {/* Revenus */}
             <Card className="flex flex-col">
               <div className="p-5 border-b border-border flex items-center gap-2">
-                <Euro className="w-4 h-4 text-success" />
+                <ArrowUpRight className="w-4 h-4 text-success" />
                 <h3 className="font-semibold">Revenus</h3>
                 <span className="ml-auto text-xs text-muted-foreground">{revenues.length} entrée{revenues.length > 1 ? "s" : ""}</span>
               </div>
@@ -122,15 +123,18 @@ export default function Finances() {
                     Aucun revenu enregistré
                   </div>
                 ) : revenues.map(r => (
-                  <div key={r.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+                  <div key={r.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors group">
                     <div className="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center shrink-0">
-                      <Euro className="w-5 h-5" />
+                      <ArrowUpRight className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{r.name}</div>
                       <div className="text-xs text-muted-foreground mt-0.5">{r.date}{r.category ? ` · ${r.category}` : ""}</div>
                     </div>
                     <div className="font-mono font-semibold text-success shrink-0">+{formatCurrency(r.amount)}</div>
+                    <button onClick={() => deleteTx.mutate(r.id)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all shrink-0" title="Supprimer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -149,7 +153,7 @@ export default function Finances() {
                     Aucune dépense enregistrée
                   </div>
                 ) : expenses.map(ex => (
-                  <div key={ex.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+                  <div key={ex.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors group">
                     <div className="w-10 h-10 rounded-lg bg-danger/10 text-danger flex items-center justify-center shrink-0">
                       <UploadCloud className="w-5 h-5" />
                     </div>
@@ -158,6 +162,9 @@ export default function Finances() {
                       <div className="text-xs text-muted-foreground mt-0.5">{ex.date} · {ex.category || "Général"}</div>
                     </div>
                     <div className="font-mono font-semibold text-danger shrink-0">-{formatCurrency(ex.amount)}</div>
+                    <button onClick={() => deleteTx.mutate(ex.id)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all shrink-0" title="Supprimer">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -195,12 +202,12 @@ export default function Finances() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Montant (€)</Label>
+              <Label>Montant (FCFA)</Label>
               <Input
                 type="number"
                 required
                 min="0"
-                step="0.01"
+                step="1"
                 value={formData.amount}
                 onChange={e => setFormData({ ...formData, amount: e.target.value })}
                 placeholder="1500"

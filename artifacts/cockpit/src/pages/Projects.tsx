@@ -3,24 +3,36 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { PageHeader } from "@/components/Layout";
 import { Card, Badge, Button, Input, Modal, Label, Progress } from "@/components/UI";
-import { useProjects, useAddProject } from "@/hooks/use-projects";
+import { useProjects, useAddProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
-import { Filter, Plus, Lock } from "lucide-react";
+import { Search, Plus, Lock, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function Projects() {
   const { data: projects = [] } = useProjects();
   const { data: clients = [] } = useClients();
   const addProject = useAddProject();
+  const updateProject = useUpdateProject();
+  const deleteProject = useDeleteProject();
   const { plan } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Tous");
   const [formData, setFormData] = useState({
     name: "",
     clientId: "",
     budget: "",
     dates: "",
+  });
+
+  const filteredProjects = projects.filter(p => {
+    const matchSearch = !search.trim() ||
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.client.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === "Tous" || p.status === filterStatus;
+    return matchSearch && matchStatus;
   });
 
   const atLimit = isAtLimit(plan, "projects", projects.length);
@@ -56,9 +68,20 @@ export default function Projects() {
         title="Projets"
         subtitle={`${statusCounts.en_cours} en cours · ${statusCounts.termines} terminés · ${statusCounts.pause} en pause`}
       >
-        <Button variant="outline" className="gap-2">
-          <Filter className="w-4 h-4" /> Filtrer
-        </Button>
+        <div className="flex items-center bg-card border border-border rounded-lg px-3 py-1.5 w-52">
+          <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+          <input className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <select
+          className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-muted-foreground outline-none focus:border-primary"
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+        >
+          <option value="Tous">Tous</option>
+          <option value="En cours">En cours</option>
+          <option value="Terminé">Terminés</option>
+          <option value="En pause">En pause</option>
+        </select>
         {atLimit ? (
           <Link href="/">
             <Button variant="outline" className="gap-2 border-amber-500/40 text-amber-400 hover:border-amber-400">
@@ -120,8 +143,8 @@ export default function Projects() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {projects.map(p => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                  {filteredProjects.map(p => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-6 py-4 font-medium text-foreground">{p.name}</td>
                       <td className="px-6 py-4 text-muted-foreground">{p.client}</td>
                       <td className="px-6 py-4 font-mono">{formatCurrency(p.budget)}</td>
@@ -134,8 +157,28 @@ export default function Projects() {
                           <div className="flex-1">
                             <Progress value={p.progress} color={`var(--color-${p.statusColor})`} />
                           </div>
-                          <span className="text-xs font-mono text-muted-foreground w-8 text-right">{p.progress}%</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={p.progress}
+                            onChange={e => {
+                              const v = Math.min(100, Math.max(0, Number(e.target.value)));
+                              updateProject.mutate({ id: p.id, progress: v });
+                            }}
+                            className="w-12 text-xs font-mono text-muted-foreground bg-transparent border border-border rounded px-1 py-0.5 text-right focus:outline-none focus:border-primary"
+                          />
+                          <span className="text-xs text-muted-foreground">%</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => deleteProject.mutate(p.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -181,12 +224,12 @@ export default function Projects() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Budget (€)</Label>
+              <Label>Budget (FCFA)</Label>
               <Input
                 type="number"
                 required
                 min="0"
-                step="0.01"
+                step="1"
                 value={formData.budget}
                 onChange={e => setFormData({ ...formData, budget: e.target.value })}
                 placeholder="5000"

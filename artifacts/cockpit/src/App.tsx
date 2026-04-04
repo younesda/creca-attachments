@@ -1,9 +1,12 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import { AppShell } from "./components/Layout";
@@ -15,6 +18,8 @@ import Finances from "./pages/Finances";
 import Invoices from "./pages/Invoices";
 import Analytics from "./pages/Analytics";
 import AIPage from "./pages/AI";
+import Settings from "./pages/Settings";
+import Documents from "./pages/Documents";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -24,6 +29,32 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function UpgradeHandler() {
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgrade = params.get("upgrade");
+    const plan = params.get("plan");
+    if (upgrade === "success") {
+      // Forcer le refresh de la session Supabase pour récupérer le nouveau plan
+      supabase.auth.refreshSession();
+      toast({
+        title: "🎉 Abonnement activé !",
+        description: `Votre plan ${plan === "business" ? "Business" : "Pro"} est maintenant actif.`,
+      });
+      // Nettoyer les params de l'URL
+      setLocation("/app");
+    } else if (upgrade === "cancelled") {
+      toast({ title: "Paiement annulé", description: "Vous pouvez réessayer quand vous voulez." });
+      setLocation("/app");
+    }
+  }, []);
+
+  return null;
+}
 
 function AppRoute({ children }: { children: React.ReactNode }) {
   return (
@@ -48,6 +79,8 @@ function Router() {
       <Route path="/app/invoices" component={() => <AppRoute><Invoices /></AppRoute>} />
       <Route path="/app/analytics" component={() => <AppRoute><Analytics /></AppRoute>} />
       <Route path="/app/ai" component={() => <AppRoute><AIPage /></AppRoute>} />
+      <Route path="/app/settings" component={() => <AppRoute><Settings /></AppRoute>} />
+      <Route path="/app/documents" component={() => <AppRoute><Documents /></AppRoute>} />
 
       <Route component={NotFound} />
     </Switch>
@@ -60,6 +93,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <UpgradeHandler />
             <Router />
           </WouterRouter>
           <Toaster />

@@ -3,16 +3,17 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { PageHeader } from "@/components/Layout";
 import { Card, Badge, Button, Input, Modal, Label } from "@/components/UI";
-import { useTasks, useToggleTask, useAddTask } from "@/hooks/use-tasks";
+import { useTasks, useToggleTask, useAddTask, useDeleteTask } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
-import { Plus, Check, Calendar, Lock } from "lucide-react";
+import { Plus, Check, Calendar, Lock, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Tasks() {
   const { data: tasks = [] } = useTasks();
   const toggleTask = useToggleTask();
   const addTask = useAddTask();
+  const deleteTask = useDeleteTask();
   const { plan } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", date: "", priority: "Normal", priorityColor: "info" as any });
@@ -78,8 +79,15 @@ export default function Tasks() {
               </div>
               <div className="p-3 flex-1 overflow-y-auto space-y-3">
                 {col.tasks.map(t => (
-                  <div key={t.id} onClick={() => toggleTask.mutate(t.id)} className="bg-card border border-border p-3 rounded-lg hover:border-primary/50 transition-colors cursor-pointer group shadow-sm">
-                    <div className="flex items-start gap-3">
+                  <div key={t.id} className="bg-card border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group shadow-sm relative">
+                    <button
+                      onClick={() => deleteTask.mutate(t.id)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                    <div className="flex items-start gap-3 cursor-pointer" onClick={() => toggleTask.mutate(t.id)}>
                       <div className={cn("mt-0.5 w-5 h-5 rounded flex items-center justify-center border-2 transition-colors shrink-0",
                         t.status === "done" ? "bg-success border-success" :
                         t.status === "in_progress" ? "bg-warning-bg border-warning" :
@@ -95,6 +103,7 @@ export default function Tasks() {
                           <Badge variant={t.priorityColor as any} className="text-[10px] px-1.5 py-0.5">{t.priority}</Badge>
                         </div>
                       </div>
+                    </div>
                     </div>
                   </div>
                 ))}

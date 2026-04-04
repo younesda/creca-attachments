@@ -3,18 +3,29 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { PageHeader } from "@/components/Layout";
 import { Card, Badge, Button, Input, Modal, Label } from "@/components/UI";
-import { useClients, useAddClient } from "@/hooks/use-clients";
+import { useClients, useAddClient, useDeleteClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
-import { Search, Plus, Mail, Phone, MapPin, Lock } from "lucide-react";
+import { Search, Plus, Mail, Phone, MapPin, Lock, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function Clients() {
   const { data: clients = [] } = useClients();
   const addClient = useAddClient();
+  const deleteClient = useDeleteClient();
   const { plan } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({ name: "", sector: "", email: "", phone: "", city: "" });
+
+  const filteredClients = search.trim()
+    ? clients.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.sector.toLowerCase().includes(search.toLowerCase()) ||
+        c.email.toLowerCase().includes(search.toLowerCase()) ||
+        c.city.toLowerCase().includes(search.toLowerCase())
+      )
+    : clients;
 
   const atLimit = isAtLimit(plan, "clients", clients.length);
 
@@ -33,7 +44,12 @@ export default function Clients() {
       <PageHeader title="Clients" subtitle={`${clients.length} client${clients.length > 1 ? "s" : ""} actif${clients.length > 1 ? "s" : ""}`}>
         <div className="flex items-center bg-card border border-border rounded-lg px-3 py-1.5 w-64">
           <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-          <input className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground" placeholder="Rechercher un client..." />
+          <input
+            className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground"
+            placeholder="Rechercher un client..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </div>
         {atLimit ? (
           <Link href="/">
@@ -64,7 +80,7 @@ export default function Clients() {
       <div className="flex-1 overflow-y-auto p-8 relative z-10">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-          {clients.map(c => (
+          {filteredClients.map(c => (
             <Card key={c.id} className="p-5 hover:-translate-y-1 hover:border-primary/50 transition-all cursor-pointer group">
               <div className="flex items-center gap-4 mb-5">
                 <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${c.gradient} flex items-center justify-center font-bold text-white shadow-lg`}>
@@ -84,7 +100,16 @@ export default function Clients() {
 
               <div className="pt-4 border-t border-border/50 flex items-center justify-between">
                 <Badge variant={c.statusColor}>{c.statusText}</Badge>
-                <div className="font-mono text-sm font-semibold text-success">{c.revenue !== null ? formatCurrency(c.revenue) : "—"}</div>
+                <div className="flex items-center gap-3">
+                  <div className="font-mono text-sm font-semibold text-success">{c.revenue !== null ? formatCurrency(c.revenue) : "—"}</div>
+                  <button
+                    onClick={e => { e.stopPropagation(); deleteClient.mutate(c.id); }}
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-muted-foreground hover:text-danger hover:bg-danger/10 transition-all"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </Card>
           ))}

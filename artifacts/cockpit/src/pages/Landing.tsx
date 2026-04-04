@@ -3,10 +3,12 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button, Badge } from "@/components/UI";
 import { CheckCircle2, ChevronRight, BarChart3, Users, FolderKanban, Receipt, BrainCircuit, CreditCard, CircleDollarSign, CheckSquare } from "lucide-react";
+import { useUpgrade } from "@/hooks/use-upgrade";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const { upgrade, loading } = useUpgrade();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -199,7 +201,9 @@ export default function Landing() {
                   <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> {f}</li>
                 ))}
               </ul>
-              <Button className="w-full" onClick={() => setLocation('/login?plan=pro')}>Choisir Pro</Button>
+              <Button className="w-full" onClick={() => upgrade("pro")} disabled={loading === "pro"}>
+                {loading === "pro" ? "Redirection…" : "Choisir Pro"}
+              </Button>
             </div>
 
             {/* Business */}
@@ -221,7 +225,9 @@ export default function Landing() {
                   <li key={i} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-400" /> {f}</li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full border-amber-500/40 hover:border-amber-400" onClick={() => setLocation('/login?plan=business')}>Choisir Business</Button>
+              <Button variant="outline" className="w-full border-amber-500/40 hover:border-amber-400" onClick={() => upgrade("business")} disabled={loading === "business"}>
+                {loading === "business" ? "Redirection…" : "Choisir Business"}
+              </Button>
             </div>
           </div>
         </section>

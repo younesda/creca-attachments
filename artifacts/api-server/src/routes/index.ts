@@ -8,6 +8,7 @@ import financesRouter from "./finances";
 import invoicesRouter from "./invoices";
 import analyticsRouter from "./analytics";
 import aiRouter from "./ai";
+import profileRouter from "./profile";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(financesRouter);
 router.use(invoicesRouter);
 router.use(analyticsRouter);
 router.use(aiRouter);
+router.use(profileRouter);
 
 export default router;
