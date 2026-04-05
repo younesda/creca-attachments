@@ -30,14 +30,21 @@ export default function Clients() {
   const atLimit = isAtLimit(plan, "clients", clients.length);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addClient.mutate(formData, {
-      onSuccess: () => {
-        setIsModalOpen(false);
-        setFormData({ name: "", sector: "", email: "", phone: "", city: "" });
-      }
-    });
-  };
+  e.preventDefault();
+
+  console.log("SUBMIT TRIGGERED", formData);
+
+  addClient.mutate(formData, {
+    onSuccess: () => {
+      console.log("SUCCESS");
+      setIsModalOpen(false);
+      setFormData({ name: "", sector: "", email: "", phone: "", city: "" });
+    },
+    onError: (err) => {
+      console.error("ERROR", err);
+    }
+  });
+};
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

@@ -2,12 +2,13 @@ import { Router } from "express";
 import { db, clientsTable, invoicesTable } from "@workspace/db";
 import { eq, and, asc, count, sum } from "drizzle-orm";
 import { isAtLimit } from "../middleware/plan-gate";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // GET /clients — liste les clients avec CA réel calculé depuis les factures
-router.get("/clients", async (req, res) => {
-  try {
+router.get("/clients", requireAuth, async (req, res) => {
+    try {
     const userId = req.user!.id;
 
     const [clients, invoiceSums] = await Promise.all([
@@ -35,7 +36,7 @@ router.get("/clients", async (req, res) => {
 });
 
 // POST /clients — crée un client (vérifie le quota du plan)
-router.post("/clients", async (req, res) => {
+router.post("/clients", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const plan = req.user!.plan;
@@ -96,9 +97,9 @@ router.post("/clients", async (req, res) => {
 });
 
 // PATCH /clients/:id — met à jour un client
-router.patch("/clients/:id", async (req, res) => {
+router.patch("/clients/:id", requireAuth, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.user!.id;
 
     const [existing] = await db
@@ -144,9 +145,9 @@ router.patch("/clients/:id", async (req, res) => {
 });
 
 // DELETE /clients/:id — supprime un client
-router.delete("/clients/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
+router.delete("/clients/:id", requireAuth, async (req, res) => {
+    try {
+    const id = req.params.id as string;
     const userId = req.user!.id;
 
     const [existing] = await db
