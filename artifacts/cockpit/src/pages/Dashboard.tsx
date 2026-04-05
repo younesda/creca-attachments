@@ -45,7 +45,7 @@ export default function Dashboard() {
       months[key] = 0;
     }
     revenues.forEach(t => {
-      const d = new Date(t.createdAt ?? "");
+      const d = new Date((t as any).createdAt ?? (t as any).date ?? "");
       if (isNaN(d.getTime())) return;
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       if (key in months) months[key] = (months[key] ?? 0) + t.amount;

@@ -37,7 +37,7 @@ export default function Invoices() {
     { label: "En attente", value: "En attente", color: "warning" },
     { label: "Payée",      value: "Payée",      color: "success" },
     { label: "En retard",  value: "En retard",  color: "danger"  },
-    { label: "Annulée",    value: "Annulée",    color: "muted"   },
+    { label: "Annulée", value: "Annulée", color: "danger" },
   ];
 
   function changeStatus(inv: Invoice, status: string, color: Invoice["statusColor"]) {
@@ -93,13 +93,12 @@ export default function Invoices() {
     e.preventDefault();
     const selectedClient = clients.find(c => c.id === formData.clientId);
     addInvoice.mutate(
-      {
-        clientId: formData.clientId || undefined,
-        client: selectedClient?.name ?? formData.clientId,
-        desc: formData.desc,
-        amount: Number(formData.amount),
-        date: formData.date,
-      },
+  {
+    client: selectedClient?.name ?? formData.clientId,
+    desc: formData.desc,
+    amount: Number(formData.amount),
+    date: formData.date,
+  },
       {
         onSuccess: () => {
           setIsModalOpen(false);

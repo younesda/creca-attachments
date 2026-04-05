@@ -40,13 +40,12 @@ export default function Projects() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     addProject.mutate(
-      {
-        name: formData.name,
-        clientId: formData.clientId || undefined,
-        client: clients.find(c => c.id === formData.clientId)?.name ?? formData.clientId,
-        budget: Number(formData.budget),
-        dates: formData.dates,
-      },
+  {
+    name: formData.name,
+    client: clients.find(c => c.id === formData.clientId)?.name ?? formData.clientId,
+    budget: Number(formData.budget),
+    dates: formData.dates,
+  },
       {
         onSuccess: () => {
           setIsModalOpen(false);
