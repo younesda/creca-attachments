@@ -75,20 +75,32 @@ export default function Login() {
   }
 
   async function handleRegister(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+  e.preventDefault();
+  setError("");
+  setSubmitting(true);
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName, plan: selectedPlan },
+    },
+  });
+
+  if (error) {
+    setError(error.message);
+  } else {
+    // 🔥 AJOUT CRITIQUE
+    await supabase.auth.signInWithPassword({
       email,
-      password,
-      options: {
-        data: { full_name: fullName, plan: selectedPlan },
-      },
+      password
     });
-    if (error) setError(error.message);
-    else setLocation("/app");
-    setSubmitting(false);
+
+    setLocation("/app");
   }
+
+  setSubmitting(false);
+}
 
   if (loading) {
     return (
