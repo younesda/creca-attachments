@@ -1,9 +1,9 @@
 import { supabase } from "./supabase";
 
-/**
- * Retourne les headers d'authentification pour les appels API.
- * À utiliser dans tous les hooks React Query.
- */
+// En développement : proxy Vite → pas de base URL nécessaire
+// En production : VITE_API_URL pointe vers le backend (ex: https://api.monapp.com)
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
 export async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) return {};
@@ -13,12 +13,9 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   };
 }
 
-/**
- * fetch authentifié — wrapper autour de fetch standard.
- */
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(url, {
+  return fetch(`${API_BASE}${url}`, {
     ...options,
     headers: {
       ...headers,

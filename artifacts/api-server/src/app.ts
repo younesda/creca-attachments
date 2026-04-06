@@ -5,7 +5,21 @@ import stripeRouter from "./routes/stripe";
 
 const app: Express = express();
 
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : ["http://localhost:3000"];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // curl / Postman / server-to-server
+    const allowed =
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.endsWith(".onrender.com");
+    callback(allowed ? null : new Error(`CORS bloqué: ${origin}`), allowed);
+  },
+  credentials: true,
+}));
 
 // ⚠️ Webhook Stripe — raw body AVANT express.json()
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
