@@ -32,4 +32,8 @@ app.use("/api", stripeRouter);
 
 app.use("/api", router);
 
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", message: "Cockpit API is running" });
+});
+
 export default app;
