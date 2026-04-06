@@ -8,7 +8,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
 import { useFinances } from "@/hooks/use-finances";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowUpRight, ArrowDownRight, Plus, Check } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Check } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -74,7 +74,6 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={`Bonjour ${displayName} — Voici votre résumé du jour`}
       >
-        <Button className="gap-2"><Plus className="w-4 h-4" /> Nouveau</Button>
       </PageHeader>
 
       <div className="flex-1 overflow-y-auto p-8 relative z-10">

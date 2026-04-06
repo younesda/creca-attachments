@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
@@ -11,21 +12,21 @@ const PLANS: { id: Plan; label: string; price: string; color: string; features: 
   {
     id: "free",
     label: "Free",
-    price: "0€",
+    price: "0 FCFA",
     color: "border-border",
     features: ["1 client actif", "1 projet simultané", "5 factures/mois"],
   },
   {
     id: "pro",
     label: "Pro",
-    price: "29€",
+    price: "6 500 FCFA",
     color: "border-primary shadow-lg shadow-primary/20",
     features: ["Tout illimité", "Analytics complets", "✦ IA incluse"],
   },
   {
     id: "business",
     label: "Business",
-    price: "79€",
+    price: "14 000 FCFA",
     color: "border-amber-500/60",
     features: ["Tout Pro", "10 collaborateurs", "✦ IA avancée"],
   },
@@ -75,32 +76,53 @@ export default function Login() {
   }
 
   async function handleRegister(e: React.FormEvent) {
-  e.preventDefault();
-  setError("");
-  setSubmitting(true);
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName, plan: selectedPlan },
-    },
-  });
-
-  if (error) {
-    setError(error.message);
-  } else {
-    // 🔥 AJOUT CRITIQUE
-    await supabase.auth.signInWithPassword({
+    // Always register as free — paid plans are activated via Stripe
+    const { error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        data: { full_name: fullName, plan: "free" },
+      },
     });
 
-    setLocation("/app");
-  }
+    if (error) {
+      setError(error.message);
+      setSubmitting(false);
+      return;
+    }
 
-  setSubmitting(false);
-}
+    // Sign in immediately after registration
+    const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (loginErr) {
+      setError(loginErr.message);
+      setSubmitting(false);
+      return;
+    }
+
+    // If paid plan selected, start Stripe checkout
+    if (selectedPlan !== "free") {
+      try {
+        const res = await apiFetch("/api/stripe/create-checkout", {
+          method: "POST",
+          body: JSON.stringify({ plan: selectedPlan }),
+        });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      } catch {
+        // Stripe not configured yet — go to app, user can upgrade from Settings
+      }
+    }
+
+    setLocation("/app");
+    setSubmitting(false);
+  }
 
   if (loading) {
     return (

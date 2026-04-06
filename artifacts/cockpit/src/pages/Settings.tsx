@@ -5,7 +5,7 @@ import { Card, Button, Input, Label } from "@/components/UI";
 import { useProfile, useSaveProfile } from "@/hooks/use-profile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpgrade } from "@/hooks/use-upgrade";
-import { Save, Check, Building2, Mail, Phone, MapPin, FileText, Globe } from "lucide-react";
+import { Save, Check, Building2, Mail, Phone, MapPin, FileText, Globe, Zap } from "lucide-react";
 
 type ProfileForm = {
   companyName: string;
@@ -31,6 +31,7 @@ export default function Settings() {
   const { user, plan } = useAuth();
   const { data: profile, isLoading: loading } = useProfile();
   const saveProfile = useSaveProfile();
+  const { upgrade, loading: upgradeLoading } = useUpgrade();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [saved, setSaved] = useState(false);
 
@@ -91,6 +92,37 @@ export default function Settings() {
               </div>
             </div>
           </Card>
+
+          {/* Upgrade plan */}
+          {plan === "free" && (
+            <Card className="p-6">
+              <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">Passer à la version payante</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border border-primary/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-primary">Pro</span>
+                  </div>
+                  <div className="text-lg font-bold font-display mb-1">6 500 FCFA<span className="text-xs text-muted-foreground font-normal">/mois</span></div>
+                  <p className="text-xs text-muted-foreground mb-3">Illimité + Analytics + IA</p>
+                  <Button className="w-full" onClick={() => upgrade("pro")} disabled={upgradeLoading === "pro"}>
+                    {upgradeLoading === "pro" ? "Redirection…" : "Passer Pro"}
+                  </Button>
+                </div>
+                <div className="border border-amber-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span className="font-semibold text-amber-400">Business</span>
+                  </div>
+                  <div className="text-lg font-bold font-display mb-1">14 000 FCFA<span className="text-xs text-muted-foreground font-normal">/mois</span></div>
+                  <p className="text-xs text-muted-foreground mb-3">Tout Pro + équipe + API</p>
+                  <Button variant="outline" className="w-full border-amber-500/40 hover:border-amber-400" onClick={() => upgrade("business")} disabled={upgradeLoading === "business"}>
+                    {upgradeLoading === "business" ? "Redirection…" : "Passer Business"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Profil entreprise */}
           <form onSubmit={handleSubmit}>

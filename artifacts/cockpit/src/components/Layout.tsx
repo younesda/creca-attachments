@@ -50,13 +50,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Sidebar */}
       <aside className="w-[240px] bg-sidebar border-r border-border flex flex-col flex-shrink-0">
-        <div className="p-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-display font-bold text-lg hover:opacity-80 transition-opacity">
+        <div className="p-5">
+          <Link href="/app" className="flex items-center gap-2 font-display font-bold text-lg hover:opacity-80 transition-opacity">
             <span className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(124,58,237,0.8)]"></span>
             Cockpit
-          </Link>
-          <Link href="/" className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground">
-            ← Accueil
           </Link>
         </div>
 
