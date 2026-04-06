@@ -17,7 +17,7 @@ export function useInvoices() {
     queryKey: ["invoices"],
     queryFn: async () => {
       const res = await apiFetch("/api/invoices");
-      if (!res.ok) throw new Error("Failed to fetch invoices");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch invoices`); }
       return res.json() as Promise<Invoice[]>;
     },
   });
@@ -33,7 +33,7 @@ export function useAddInvoice() {
         method: "POST",
         body: JSON.stringify(invoice),
       });
-      if (!res.ok) throw new Error("Failed to create invoice");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create invoice`); }
       return res.json() as Promise<Invoice>;
     },
     onSuccess: () => {
@@ -51,7 +51,7 @@ export function useUpdateInvoice() {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to update invoice");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — update invoice`); }
       return res.json() as Promise<Invoice>;
     },
     onSuccess: () => {
@@ -66,7 +66,7 @@ export function useDeleteInvoice() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/invoices/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete invoice");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — delete invoice`); }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });

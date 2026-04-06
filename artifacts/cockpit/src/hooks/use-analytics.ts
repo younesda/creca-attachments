@@ -33,7 +33,7 @@ export function useAnalyticsSummary() {
     queryKey: ["analytics", "summary"],
     queryFn: async () => {
       const res = await apiFetch("/api/analytics/summary");
-      if (!res.ok) throw new Error("Failed to fetch analytics summary");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch analytics summary`); }
       return res.json() as Promise<AnalyticsSummary>;
     },
   });
@@ -44,7 +44,7 @@ export function useRevenueTrend() {
     queryKey: ["analytics", "revenue-trend"],
     queryFn: async () => {
       const res = await apiFetch("/api/analytics/revenue-trend");
-      if (!res.ok) throw new Error("Failed to fetch revenue trend");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch revenue trend`); }
       return res.json() as Promise<RevenueTrendItem[]>;
     },
   });
@@ -55,7 +55,7 @@ export function useExpensesByCategory() {
     queryKey: ["analytics", "expenses-by-category"],
     queryFn: async () => {
       const res = await apiFetch("/api/analytics/expenses-by-category");
-      if (!res.ok) throw new Error("Failed to fetch expenses by category");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch expenses by category`); }
       return res.json() as Promise<ExpenseCategoryItem[]>;
     },
   });

@@ -17,7 +17,7 @@ export function useProjects() {
     queryKey: ["projects"],
     queryFn: async () => {
       const res = await apiFetch("/api/projects");
-      if (!res.ok) throw new Error("Failed to fetch projects");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch projects`); }
       return res.json() as Promise<Project[]>;
     },
   });
@@ -33,7 +33,7 @@ export function useAddProject() {
         method: "POST",
         body: JSON.stringify(project),
       });
-      if (!res.ok) throw new Error("Failed to create project");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create project`); }
       return res.json() as Promise<Project>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
@@ -48,7 +48,7 @@ export function useUpdateProject() {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to update project");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — update project`); }
       return res.json() as Promise<Project>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
@@ -60,7 +60,7 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/projects/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete project");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — delete project`); }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
   });

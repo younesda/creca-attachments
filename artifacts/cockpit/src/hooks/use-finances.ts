@@ -15,7 +15,7 @@ export function useFinances() {
     queryKey: ["finances"],
     queryFn: async () => {
       const res = await apiFetch("/api/finances");
-      if (!res.ok) throw new Error("Failed to fetch transactions");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch transactions`); }
       return res.json() as Promise<Transaction[]>;
     },
   });
@@ -29,7 +29,7 @@ export function useAddTransaction() {
         method: "POST",
         body: JSON.stringify(transaction),
       });
-      if (!res.ok) throw new Error("Failed to create transaction");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create transaction`); }
       return res.json() as Promise<Transaction>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["finances"] }),
@@ -44,7 +44,7 @@ export function useUpdateTransaction() {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to update transaction");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — update transaction`); }
       return res.json() as Promise<Transaction>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["finances"] }),
@@ -56,7 +56,7 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/finances/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete transaction");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — delete transaction`); }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["finances"] }),
   });

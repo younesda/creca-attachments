@@ -15,7 +15,7 @@ export function useTasks() {
     queryKey: ["tasks"],
     queryFn: async () => {
       const res = await apiFetch("/api/tasks");
-      if (!res.ok) throw new Error("Failed to fetch tasks");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — fetch tasks`); }
       return res.json() as Promise<Task[]>;
     },
   });
@@ -26,7 +26,7 @@ export function useToggleTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/tasks/${id}/toggle`, { method: "PATCH" });
-      if (!res.ok) throw new Error("Failed to toggle task");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — toggle task`); }
       return res.json() as Promise<Task>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
@@ -41,7 +41,7 @@ export function useAddTask() {
         method: "POST",
         body: JSON.stringify(task),
       });
-      if (!res.ok) throw new Error("Failed to create task");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create task`); }
       return res.json() as Promise<Task>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
@@ -56,7 +56,7 @@ export function useUpdateTask() {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to update task");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — update task`); }
       return res.json() as Promise<Task>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
@@ -68,7 +68,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete task");
+      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — delete task`); }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
   });
