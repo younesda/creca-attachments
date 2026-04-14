@@ -13,13 +13,38 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
   };
 }
 
+async function getRefreshedHeaders(): Promise<Record<string, string> | null> {
+  const { data: { session } } = await supabase.auth.refreshSession();
+  if (!session?.access_token) return null;
+  return {
+    "Authorization": `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  };
+}
+
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const headers = await getAuthHeaders();
-  return fetch(`${API_BASE}${url}`, {
+  const res = await fetch(`${API_BASE}${url}`, {
     ...options,
     headers: {
       ...headers,
       ...(options.headers as Record<string, string> ?? {}),
     },
   });
+
+  // Token expiré → on rafraîchit et on réessaie une fois
+  if (res.status === 401) {
+    const refreshed = await getRefreshedHeaders();
+    if (refreshed) {
+      return fetch(`${API_BASE}${url}`, {
+        ...options,
+        headers: {
+          ...refreshed,
+          ...(options.headers as Record<string, string> ?? {}),
+        },
+      });
+    }
+  }
+
+  return res;
 }
