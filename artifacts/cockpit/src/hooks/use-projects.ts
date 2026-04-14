@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { throwApiError } from "@/lib/api-error";
 
 export type Project = {
   id: string;
   name: string;
   client: string;
+  clientId?: string | null;
   budget: number;
   dates: string;
   status: string;
@@ -27,13 +29,13 @@ export function useAddProject() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (
-      project: Omit<Project, "id" | "status" | "statusColor" | "progress">
+      project: Omit<Project, "id" | "status" | "statusColor" | "progress"> & { clientId?: string }
     ) => {
       const res = await apiFetch("/api/projects", {
         method: "POST",
         body: JSON.stringify(project),
       });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create project`); }
+      if (!res.ok) await throwApiError(res, "create project");
       return res.json() as Promise<Project>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),

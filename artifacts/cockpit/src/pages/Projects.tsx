@@ -7,6 +7,8 @@ import { useProjects, useAddProject, useUpdateProject, useDeleteProject } from "
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
+import { isLimitError } from "@/lib/api-error";
+import { useToast } from "@/hooks/use-toast";
 import { Search, Plus, Lock, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -35,21 +37,35 @@ export default function Projects() {
     return matchSearch && matchStatus;
   });
 
+  const { toast } = useToast();
   const atLimit = isAtLimit(plan, "projects", projects.length);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     addProject.mutate(
-  {
-    name: formData.name,
-    client: clients.find(c => c.id === formData.clientId)?.name ?? formData.clientId,
-    budget: Number(formData.budget),
-    dates: formData.dates,
-  },
+      {
+        name: formData.name,
+        clientId: formData.clientId || undefined,
+        client: clients.find(c => c.id === formData.clientId)?.name ?? formData.clientId,
+        budget: Number(formData.budget),
+        dates: formData.dates,
+      },
       {
         onSuccess: () => {
           setIsModalOpen(false);
           setFormData({ name: "", clientId: "", budget: "", dates: "" });
+        },
+        onError: (err) => {
+          if (isLimitError(err)) {
+            setIsModalOpen(false);
+            toast({
+              title: "Limite atteinte",
+              description: "Le plan Free est limité à 1 projet. Passez Pro pour en ajouter plus.",
+              variant: "destructive",
+            });
+          } else {
+            toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          }
         },
       }
     );

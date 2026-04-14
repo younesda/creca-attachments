@@ -8,6 +8,7 @@ import { useClients } from "@/hooks/use-clients";
 import { useProfile } from "@/hooks/use-profile";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
+import { isLimitError } from "@/lib/api-error";
 import { Plus, Download, Lock, FileText, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -93,17 +94,29 @@ export default function Invoices() {
     e.preventDefault();
     const selectedClient = clients.find(c => c.id === formData.clientId);
     addInvoice.mutate(
-  {
-    client: selectedClient?.name ?? formData.clientId,
-    desc: formData.desc,
-    amount: Number(formData.amount),
-    date: formData.date,
-  },
+      {
+        client: selectedClient?.name ?? formData.clientId,
+        desc: formData.desc,
+        amount: Number(formData.amount),
+        date: formData.date,
+      },
       {
         onSuccess: () => {
           setIsModalOpen(false);
           setFormData({ clientId: "", desc: "", amount: "", date: "" });
           toast({ title: "Facture créée avec succès" });
+        },
+        onError: (err) => {
+          if (isLimitError(err)) {
+            setIsModalOpen(false);
+            toast({
+              title: "Limite atteinte",
+              description: "Le plan Free est limité à 5 factures. Passez Pro pour continuer.",
+              variant: "destructive",
+            });
+          } else {
+            toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          }
         },
       }
     );

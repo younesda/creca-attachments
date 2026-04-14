@@ -6,6 +6,8 @@ import { Card, Badge, Button, Input, Modal, Label } from "@/components/UI";
 import { useTasks, useToggleTask, useAddTask, useDeleteTask } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
+import { isLimitError } from "@/lib/api-error";
+import { useToast } from "@/hooks/use-toast";
 import { Plus, Check, Calendar, Lock, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,7 @@ export default function Tasks() {
     priorityColor: "info" as any,
   });
 
+  const { toast } = useToast();
   const activeTasks = tasks.filter(t => t.status !== "done");
   const atLimit = isAtLimit(plan, "tasks", activeTasks.length);
 
@@ -32,12 +35,19 @@ export default function Tasks() {
     addTask.mutate(formData, {
       onSuccess: () => {
         setIsModalOpen(false);
-        setFormData({
-          name: "",
-          date: "",
-          priority: "Normal",
-          priorityColor: "info",
-        });
+        setFormData({ name: "", date: "", priority: "Normal", priorityColor: "info" });
+      },
+      onError: (err) => {
+        if (isLimitError(err)) {
+          setIsModalOpen(false);
+          toast({
+            title: "Limite atteinte",
+            description: "Le plan Free est limité à 20 tâches actives. Passez Pro pour continuer.",
+            variant: "destructive",
+          });
+        } else {
+          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+        }
       },
     });
   };

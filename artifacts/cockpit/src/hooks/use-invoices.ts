@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { throwApiError } from "@/lib/api-error";
 
 export type Invoice = {
   id: string;
@@ -33,7 +34,7 @@ export function useAddInvoice() {
         method: "POST",
         body: JSON.stringify(invoice),
       });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create invoice`); }
+      if (!res.ok) await throwApiError(res, "create invoice");
       return res.json() as Promise<Invoice>;
     },
     onSuccess: () => {

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { throwApiError } from "@/lib/api-error";
 
 export type Client = {
   id: string;
@@ -36,10 +37,7 @@ export function useAddClient() {
         method: "POST",
         body: JSON.stringify(client),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error ?? `Erreur ${res.status}`);
-      }
+      if (!res.ok) await throwApiError(res, "create client");
       return res.json() as Promise<Client>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["clients"] }),

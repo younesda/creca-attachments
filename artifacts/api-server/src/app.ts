@@ -22,7 +22,8 @@ app.use(cors({
 }));
 
 // ⚠️ Webhook Stripe — raw body AVANT express.json()
-app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+// La route dans stripe.ts est "/webhook", donc le path final est "/api/webhook"
+app.use("/api/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

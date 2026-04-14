@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { throwApiError } from "@/lib/api-error";
 
 export type Task = {
   id: string;
@@ -41,7 +42,7 @@ export function useAddTask() {
         method: "POST",
         body: JSON.stringify(task),
       });
-      if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b?.error ?? `Erreur ${res.status} — create task`); }
+      if (!res.ok) await throwApiError(res, "create task");
       return res.json() as Promise<Task>;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),

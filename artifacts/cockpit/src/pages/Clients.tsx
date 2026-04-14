@@ -6,6 +6,8 @@ import { Card, Badge, Button, Input, Modal, Label } from "@/components/UI";
 import { useClients, useAddClient, useDeleteClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAtLimit } from "@/lib/plan-limits";
+import { isLimitError } from "@/lib/api-error";
+import { useToast } from "@/hooks/use-toast";
 import { Search, Plus, Mail, Phone, MapPin, Lock, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -18,6 +20,7 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({ name: "", sector: "", email: "", phone: "", city: "" });
 
+  const { toast } = useToast();
   const filteredClients = search.trim()
     ? clients.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -30,21 +33,26 @@ export default function Clients() {
   const atLimit = isAtLimit(plan, "clients", clients.length);
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-
-  console.log("SUBMIT TRIGGERED", formData);
-
-  addClient.mutate(formData, {
-    onSuccess: () => {
-      console.log("SUCCESS");
-      setIsModalOpen(false);
-      setFormData({ name: "", sector: "", email: "", phone: "", city: "" });
-    },
-    onError: (err) => {
-      console.error("ERROR", err);
-    }
-  });
-};
+    e.preventDefault();
+    addClient.mutate(formData, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+        setFormData({ name: "", sector: "", email: "", phone: "", city: "" });
+      },
+      onError: (err) => {
+        if (isLimitError(err)) {
+          setIsModalOpen(false);
+          toast({
+            title: "Limite atteinte",
+            description: "Le plan Free est limité à 1 client. Passez Pro pour en ajouter plus.",
+            variant: "destructive",
+          });
+        } else {
+          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+        }
+      },
+    });
+  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

@@ -4,7 +4,8 @@
       "Read(//c/Users/X1 Carbon/Documents/Creca-Attachments/**)",
       "Bash(pnpm add:*)",
       "Bash(DATABASE_URL=\"postgresql://postgres:hkaJddVMAZNb6xvG@db.djncoqpbitttspcxanve.supabase.co:5432/postgres\" npx drizzle-kit push)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:iWMX2vIt8zWeKgB5@db.isiuksiolhnueycebdgk.supabase.co:5432/postgres\" npx drizzle-kit push)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:iWMX2vIt8zWeKgB5@db.isiuksiolhnueycebdgk.supabase.co:5432/postgres\" npx drizzle-kit push)",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }
